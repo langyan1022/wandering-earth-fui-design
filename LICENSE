@@ -1,0 +1,36 @@
+MIT License
+
+Copyright (c) 2026 langyan1022 & wandering-earth-fui-design contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+### Unofficial Fan Tribute & Copyright Takedown Notice / 非官方致敬与版权声明
+
+- **非官方设计声明**：本项目并非官方设计规范，纯属**小破球迷致敬《流浪地球》系列电影**的开源设计系统与 Agent Skill 整理作品，与电影出品方、制作方及版权方无任何官方关联或授权关系。
+- **版权处理通道**：仓库内代码、样式与工程脚本按最宽松的 MIT 协议完全开放共享；仓库内用于学习与致敬展示的电影相关矢量标识（`assets/logos/`）仅作非商业个人学习参考。**如有任何版权纠纷或权利方认为存在不当之处，请通过 GitHub Issue 或邮件通知，本人将第一时间配合修改或下架处理。**
+- **Unofficial Tribute**: This repository is an **unofficial fan-made tribute** to *The Wandering Earth* film series and is not affiliated with or endorsed by any official rights holder. All code, tokens, stylesheets, and tooling are released openly under the permissive MIT License. If you are a copyright owner and have any concern regarding any included visual reference or fan-redrawn emblem (`assets/logos/`), please open a GitHub Issue or contact the maintainer for immediate takedown.
+
+### Third-Party Attributions
+
+1. **Visual Study Reference**: *The Wandering Earth FUI design* (Behance, 2020) by
+   Richard Chan (`behance.net/gallery/93931179/The-Wandering-Earth-FUI-design`).
+2. **ENCOM Globe (`assets/encom-globe/`)**: Copyright (c) 2014–2017 Robert Scanlon,
+   MIT License (`assets/encom-globe/LICENSE.txt`).

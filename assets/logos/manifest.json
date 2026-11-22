@@ -1,0 +1,865 @@
+[
+ {
+  "file": "ueg-emblem.svg",
+  "subject": "ueg",
+  "kind": "emblem",
+  "label": "United Earth Government — globe and lettering",
+  "animated": false,
+  "viewBox": "0 0 3000 3500",
+  "aspect": 0.857,
+  "colors": [
+   "#2a7b97"
+  ],
+  "ink": true,
+  "source": "各种logo/UEG标志.svg"
+ },
+ {
+  "file": "ueg-globe.svg",
+  "subject": "ueg",
+  "kind": "emblem",
+  "label": "United Earth Government — globe only",
+  "animated": false,
+  "viewBox": "0 0 3000 3500",
+  "aspect": 0.857,
+  "colors": [
+   "#2a7b97"
+  ],
+  "ink": true,
+  "source": "各种logo/UEG标志 -地球.svg"
+ },
+ {
+  "file": "ueg-lettering.svg",
+  "subject": "ueg",
+  "kind": "wordmark",
+  "label": "United Earth Government — lettering only",
+  "animated": false,
+  "viewBox": "0 0 3000 3500",
+  "aspect": 0.857,
+  "colors": [
+   "#2a7b97"
+  ],
+  "ink": true,
+  "source": "各种logo/UEG标志 -全字母.svg"
+ },
+ {
+  "file": "ueg-wordmark.svg",
+  "subject": "ueg",
+  "kind": "wordmark",
+  "label": "UEG wordmark, teal",
+  "animated": false,
+  "viewBox": "0 0 3000 1200",
+  "aspect": 2.5,
+  "colors": [
+   "#2a7b97"
+  ],
+  "ink": true,
+  "source": "各种logo/UEG.svg"
+ },
+ {
+  "file": "ueg-wordmark-black.svg",
+  "subject": "ueg",
+  "kind": "wordmark",
+  "label": "UEG wordmark, black",
+  "animated": false,
+  "viewBox": "0 0 3000 1200",
+  "aspect": 2.5,
+  "colors": [
+   "#000000"
+  ],
+  "ink": true,
+  "source": "各种logo/UEG - 副本.svg"
+ },
+ {
+  "file": "ueg-wordmark.anim.svg",
+  "subject": "ueg",
+  "kind": "wordmark",
+  "label": "UEG wordmark, draw-on then fill",
+  "animated": true,
+  "still": "ueg-wordmark.svg",
+  "viewBox": "0 0 3000 1200",
+  "aspect": 2.5,
+  "colors": [
+   "#2a7b97"
+  ],
+  "ink": false,
+  "source": "各种logo/UEG - 副本 (2).svg",
+  "verified": true
+ },
+ {
+  "file": "ueg-wordmark-2.anim.svg",
+  "subject": "ueg",
+  "kind": "wordmark",
+  "label": "UEG wordmark, slower draw-on then fill",
+  "animated": true,
+  "still": "ueg-wordmark.svg",
+  "viewBox": "0 0 3000 1200",
+  "aspect": 2.5,
+  "colors": [
+   "#2a7b97"
+  ],
+  "ink": false,
+  "source": "各种logo/UEG2222.svg",
+  "verified": true,
+  "patched": "root padding removed so the mark fills its box when embedded"
+ },
+ {
+  "file": "ueg-scc.svg",
+  "subject": "ueg-scc",
+  "kind": "lockup",
+  "label": "UEG Spaceflight Control Center — emblem and wordmark",
+  "animated": false,
+  "viewBox": "0 0 4200 1000",
+  "aspect": 4.2,
+  "colors": [
+   "#000000"
+  ],
+  "ink": true,
+  "source": "各种logo/飞行控制中心.svg"
+ },
+ {
+  "file": "ueg-scc-wordmark.svg",
+  "subject": "ueg-scc",
+  "kind": "wordmark",
+  "label": "UEG Spaceflight Control Center — wordmark only",
+  "animated": false,
+  "viewBox": "0 0 3000 800",
+  "aspect": 3.75,
+  "colors": [
+   "#000000"
+  ],
+  "ink": true,
+  "source": "各种logo/飞行控制中心 - 文本.svg"
+ },
+ {
+  "file": "ueg-scc-emblem.svg",
+  "subject": "ueg-scc",
+  "kind": "emblem",
+  "label": "UEG Spaceflight Control Center — emblem only",
+  "animated": false,
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#000000"
+  ],
+  "ink": true,
+  "source": "各种logo/飞行控制中心标志.svg"
+ },
+ {
+  "file": "navigator-seal.svg",
+  "subject": "navigator",
+  "kind": "seal",
+  "label": "The Navigator Project seal, light",
+  "animated": false,
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#000000",
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "动画logo/领航员.svg"
+ },
+ {
+  "file": "navigator-seal-dark.svg",
+  "subject": "navigator",
+  "kind": "seal",
+  "label": "The Navigator Project seal, dark",
+  "animated": false,
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#ffffff",
+   "#000000"
+  ],
+  "ink": false,
+  "source": "各种logo/领航员.svg"
+ },
+ {
+  "file": "navigator-seal-alt.svg",
+  "subject": "navigator",
+  "kind": "seal",
+  "label": "The Navigator Project seal, alternate centre",
+  "animated": false,
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#ffffff"
+  ],
+  "ink": true,
+  "source": "各种logo/领航员2.svg"
+ },
+ {
+  "file": "navigator-seal-blank.svg",
+  "subject": "navigator",
+  "kind": "seal",
+  "label": "The Navigator Project seal, empty centre",
+  "animated": false,
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#000000",
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "动画logo/领航员-重构.svg"
+ },
+ {
+  "file": "navigator-seal.anim.svg",
+  "subject": "navigator",
+  "kind": "seal",
+  "label": "The Navigator Project seal, assembling (final cut)",
+  "animated": true,
+  "still": "navigator-seal.svg",
+  "viewBox": "0 0 2834.6 2834.6",
+  "aspect": 1,
+  "colors": [
+   "#ffffff",
+   "#000000"
+  ],
+  "ink": false,
+  "source": "动画logo/领航员定稿.svg",
+  "verified": true
+ },
+ {
+  "file": "navigator-seal-red.anim.svg",
+  "subject": "navigator",
+  "kind": "seal",
+  "label": "The Navigator Project seal, assembling, red and gold",
+  "animated": true,
+  "still": "navigator-seal.svg",
+  "viewBox": "0 0 2834.6 2834.6",
+  "aspect": 1,
+  "colors": [
+   "#de2910",
+   "#ffde00"
+  ],
+  "ink": false,
+  "source": "动画logo/领航员定稿-red.svg",
+  "verified": true,
+  "patched": "root padding removed so the mark fills its box when embedded"
+ },
+ {
+  "file": "navigator-seal-spin.anim.svg",
+  "subject": "navigator",
+  "kind": "seal",
+  "label": "The Navigator Project seal, station turning into place",
+  "animated": true,
+  "still": "navigator-seal.svg",
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "动画logo/领航员2.svg",
+  "verified": true
+ },
+ {
+  "file": "navigator-seal-spin-red.anim.svg",
+  "subject": "navigator",
+  "kind": "seal",
+  "label": "The Navigator Project seal, station turning into place, red ring",
+  "animated": true,
+  "still": "navigator-seal.svg",
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#ffffff",
+   "#de2910"
+  ],
+  "ink": false,
+  "source": "动画logo/领航员-red.svg",
+  "verified": true
+ },
+ {
+  "file": "wandering-earth-seal.svg",
+  "subject": "wandering-earth",
+  "kind": "seal",
+  "label": "The Wandering Earth Project seal, light",
+  "animated": false,
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#000000",
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "各种logo/流浪地球 1.svg"
+ },
+ {
+  "file": "wandering-earth-seal-dark.svg",
+  "subject": "wandering-earth",
+  "kind": "seal",
+  "label": "The Wandering Earth Project seal, dark",
+  "animated": false,
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#ffffff",
+   "#000000"
+  ],
+  "ink": false,
+  "source": "各种logo/流浪地球 - 副本.svg"
+ },
+ {
+  "file": "wandering-earth-seal-dark-alt.svg",
+  "subject": "wandering-earth",
+  "kind": "seal",
+  "label": "The Wandering Earth Project seal, dark, alternate ring",
+  "animated": false,
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#000000",
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "各种logo/流浪地球 2.svg"
+ },
+ {
+  "file": "wandering-earth-seal-outline.svg",
+  "subject": "wandering-earth",
+  "kind": "seal",
+  "label": "The Wandering Earth Project seal, outline",
+  "animated": false,
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#ffffff",
+   "#000000"
+  ],
+  "ink": false,
+  "source": "各种logo/流浪地球.svg"
+ },
+ {
+  "file": "ark-seal.svg",
+  "subject": "projects",
+  "kind": "seal",
+  "label": "The Ark Project seal",
+  "animated": false,
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#000000",
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "各种logo/方舟.svg"
+ },
+ {
+  "file": "moving-mountain-seal.svg",
+  "subject": "projects",
+  "kind": "seal",
+  "label": "The Moving Mountain Project seal",
+  "animated": false,
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#000000",
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "各种logo/移山.svg"
+ },
+ {
+  "file": "lunar-exile-seal.svg",
+  "subject": "lunar-exile",
+  "kind": "seal",
+  "label": "The Lunar Exile Project seal",
+  "animated": false,
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#000000",
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "各种logo/月球放逐.svg"
+ },
+ {
+  "file": "lunar-exile-seal-alt.svg",
+  "subject": "lunar-exile",
+  "kind": "seal",
+  "label": "The Lunar Exile Project seal, alternate",
+  "animated": false,
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#000000",
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "各种logo/逐月/通用/胸章.svg"
+ },
+ {
+  "file": "lunar-exile-patch.svg",
+  "subject": "lunar-exile",
+  "kind": "patch",
+  "label": "The Luna Exile Project arm patch, line",
+  "animated": false,
+  "viewBox": "0 0 3000 2000",
+  "aspect": 1.5,
+  "colors": [
+   "#000000"
+  ],
+  "ink": true,
+  "source": "各种logo/月球放逐 - 臂章.svg"
+ },
+ {
+  "file": "lunar-exile-patch-navy.svg",
+  "subject": "lunar-exile",
+  "kind": "patch",
+  "label": "The Lunar Exile Project arm patch, navy",
+  "animated": false,
+  "viewBox": "0 0 3200 2000",
+  "aspect": 1.6,
+  "colors": [
+   "#0b1739",
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "各种logo/逐月/通用/臂章/计划/1.svg"
+ },
+ {
+  "file": "lunar-base-patch-navy.svg",
+  "subject": "lunar-exile",
+  "kind": "patch",
+  "label": "Joint Research Base UEG Moon arm patch, navy",
+  "animated": false,
+  "viewBox": "0 0 3200 2000",
+  "aspect": 1.6,
+  "colors": [
+   "#0b1739",
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "各种logo/逐月/通用/臂章/研究基地.svg"
+ },
+ {
+  "file": "lunar-exile-patch-cn.svg",
+  "subject": "lunar-exile",
+  "kind": "patch",
+  "label": "月球放逐计划 arm patch, red",
+  "animated": false,
+  "viewBox": "0 0 3200 2000",
+  "aspect": 1.6,
+  "colors": [
+   "#cd0000",
+   "#ffd900"
+  ],
+  "ink": false,
+  "source": "各种logo/逐月/中国/臂章/1.svg"
+ },
+ {
+  "file": "moon-chase-patch-cn.svg",
+  "subject": "lunar-exile",
+  "kind": "patch",
+  "label": "逐月计划 arm patch, red",
+  "animated": false,
+  "viewBox": "0 0 3200 2000",
+  "aspect": 1.6,
+  "colors": [
+   "#cd0000",
+   "#ffd900"
+  ],
+  "ink": false,
+  "source": "各种logo/逐月/中国/臂章/2.svg"
+ },
+ {
+  "file": "lunar-exile-patch-su.svg",
+  "subject": "lunar-exile",
+  "kind": "patch",
+  "label": "Lunar Exile arm patch, Cyrillic, red",
+  "animated": false,
+  "viewBox": "0 0 3200 2000",
+  "aspect": 1.6,
+  "colors": [
+   "#cd0000",
+   "#ffd900"
+  ],
+  "ink": false,
+  "source": "各种logo/逐月/苏联/臂章.svg"
+ },
+ {
+  "file": "lunar-exile-badge-su.svg",
+  "subject": "lunar-exile",
+  "kind": "seal",
+  "label": "Lunar Exile chest badge, Cyrillic, red and gold",
+  "animated": false,
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#ffd900",
+   "#cd0000"
+  ],
+  "ink": false,
+  "source": "各种logo/逐月/苏联/胸章.svg"
+ },
+ {
+  "file": "sulawesi-03-engine.svg",
+  "subject": "engines",
+  "kind": "seal",
+  "label": "Sulawesi 03 steering engine — Earth Engine Control Center",
+  "animated": false,
+  "viewBox": "0 0 3000 3000",
+  "aspect": 1,
+  "colors": [
+   "#000000",
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "各种logo/苏拉威西3号转向发动机.svg"
+ },
+ {
+  "file": "space-elevator.svg",
+  "subject": "space-elevator",
+  "kind": "lockup",
+  "label": "Space Elevator — Joint Research Base UEG Gabon",
+  "animated": false,
+  "viewBox": "0 0 3000 1400",
+  "aspect": 2.143,
+  "colors": [
+   "#000000"
+  ],
+  "ink": true,
+  "source": "各种logo/标志 1.svg"
+ },
+ {
+  "file": "space-elevator-2a.svg",
+  "subject": "space-elevator",
+  "kind": "lockup",
+  "label": "Space Elevator, variant 2A",
+  "animated": false,
+  "viewBox": "0 0 3000 1400",
+  "aspect": 2.143,
+  "colors": [
+   "#000000",
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "各种logo/标志 2A.svg"
+ },
+ {
+  "file": "space-elevator-2b.svg",
+  "subject": "space-elevator",
+  "kind": "lockup",
+  "label": "Space Elevator, variant 2B",
+  "animated": false,
+  "viewBox": "0 0 3000 1400",
+  "aspect": 2.143,
+  "colors": [
+   "#000000",
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "各种logo/标志 2B.svg"
+ },
+ {
+  "file": "space-elevator.anim.svg",
+  "subject": "space-elevator",
+  "kind": "lockup",
+  "label": "Space Elevator, parts filling in",
+  "animated": true,
+  "still": "space-elevator.svg",
+  "viewBox": "0 0 3000 1400",
+  "aspect": 2.143,
+  "colors": [
+   "#000000"
+  ],
+  "ink": false,
+  "source": "动画logo/sapce.svg",
+  "verified": true
+ },
+ {
+  "file": "space-elevator-2.anim.svg",
+  "subject": "space-elevator",
+  "kind": "lockup",
+  "label": "Space Elevator, variant 2, parts filling in",
+  "animated": true,
+  "still": "space-elevator-2a.svg",
+  "viewBox": "0 0 3000 1400",
+  "aspect": 2.143,
+  "colors": [
+   "#000000",
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "动画logo/space2.svg",
+  "verified": true,
+  "patched": "root padding removed so the mark fills its box when embedded"
+ },
+ {
+  "file": "bsc-badge.svg",
+  "subject": "bsc",
+  "kind": "emblem",
+  "label": "Beijing Space Center badge",
+  "animated": false,
+  "viewBox": "0 0 2770 3000",
+  "aspect": 0.923,
+  "colors": [
+   "#344394",
+   "#344393"
+  ],
+  "ink": false,
+  "source": "动画logo/bsc-logo.svg"
+ },
+ {
+  "file": "bsc-wordmark.svg",
+  "subject": "bsc",
+  "kind": "lockup",
+  "label": "北京航天中心 Beijing Space Center wordmark",
+  "animated": false,
+  "viewBox": "0 0 3000 705",
+  "aspect": 4.255,
+  "colors": [
+   "#344394",
+   "#344393"
+  ],
+  "ink": false,
+  "source": "动画logo/bsc.svg"
+ },
+ {
+  "file": "bsc-wordmark.anim.svg",
+  "subject": "bsc",
+  "kind": "lockup",
+  "label": "Beijing Space Center wordmark, assembling",
+  "animated": true,
+  "still": "bsc-wordmark.svg",
+  "viewBox": "0 0 3000 705",
+  "aspect": 4.255,
+  "colors": [
+   "#344394",
+   "#344393"
+  ],
+  "ink": false,
+  "source": "动画logo/bsc2.svg",
+  "verified": true,
+  "patched": "root padding removed so the mark fills its box when embedded"
+ },
+ {
+  "file": "550a.svg",
+  "subject": "550",
+  "kind": "wordmark",
+  "label": "550A",
+  "animated": false,
+  "viewBox": "0 0 3000 1153",
+  "aspect": 2.602,
+  "colors": [
+   "#000000"
+  ],
+  "ink": true,
+  "source": "各种logo/550A.svg"
+ },
+ {
+  "file": "550c.svg",
+  "subject": "550",
+  "kind": "wordmark",
+  "label": "550C",
+  "animated": false,
+  "viewBox": "0 0 3000 1029",
+  "aspect": 2.915,
+  "colors": [
+   "#000000"
+  ],
+  "ink": true,
+  "source": "各种logo/550C.svg"
+ },
+ {
+  "file": "550w.svg",
+  "subject": "550",
+  "kind": "wordmark",
+  "label": "550W",
+  "animated": false,
+  "viewBox": "0 0 3570 1154",
+  "aspect": 3.094,
+  "colors": [
+   "#b41e00"
+  ],
+  "ink": true,
+  "source": "各种logo/550W.svg"
+ },
+ {
+  "file": "550w-red.anim.svg",
+  "subject": "550",
+  "kind": "wordmark",
+  "label": "550W, draw-on then fill, red W",
+  "animated": true,
+  "still": "550w.svg",
+  "viewBox": "0 0 3568.58 1153.02",
+  "aspect": 3.095,
+  "colors": [
+   "#b41e00",
+   "#000000"
+  ],
+  "ink": false,
+  "source": "各种logo/550W-red.svg",
+  "verified": true,
+  "patched": "root padding removed so the mark fills its box when embedded"
+ },
+ {
+  "file": "550w-red-2.anim.svg",
+  "subject": "550",
+  "kind": "wordmark",
+  "label": "550W, draw-on then fill, red W, variant",
+  "animated": true,
+  "still": "550w.svg",
+  "viewBox": "0 0 3568.58 1153.02",
+  "aspect": 3.095,
+  "colors": [
+   "#000000",
+   "#b41e00",
+   "#ffffff"
+  ],
+  "ink": false,
+  "source": "各种logo/550W-red2.svg",
+  "verified": true,
+  "patched": "root padding removed so the mark fills its box when embedded"
+ },
+ {
+  "file": "china-internet-center.svg",
+  "subject": "institutes",
+  "kind": "lockup",
+  "label": "中国互联网中心北京基地 China Internet Center Beijing Headquarters",
+  "animated": false,
+  "viewBox": "0 0 4800 600",
+  "aspect": 8,
+  "colors": [
+   "#000000"
+  ],
+  "ink": true,
+  "source": "各种logo/标志1.svg"
+ },
+ {
+  "file": "china-internet-center-card.svg",
+  "subject": "institutes",
+  "kind": "lockup",
+  "label": "China Internet Center, stacked on a white card",
+  "animated": false,
+  "viewBox": "0 0 4800 3000",
+  "aspect": 1.6,
+  "colors": [
+   "#ffffff",
+   "#000000"
+  ],
+  "ink": false,
+  "source": "各种logo/标志2.svg"
+ },
+ {
+  "file": "iqc-lab.svg",
+  "subject": "institutes",
+  "kind": "lockup",
+  "label": "IQC 智能量子计算机重点实验室, on a white card",
+  "animated": false,
+  "viewBox": "0 0 3000 1860",
+  "aspect": 1.613,
+  "colors": [
+   "#ffffff",
+   "#000000",
+   "#010101"
+  ],
+  "ink": false,
+  "source": "各种logo/智能量子计算机重点实验室.svg"
+ },
+ {
+  "file": "cas-digital-life.svg",
+  "subject": "institutes",
+  "kind": "wordmark",
+  "label": "中国科学院数字生命研究所 Institute of Digital Life, CAS",
+  "animated": false,
+  "viewBox": "0 0 3000 524",
+  "aspect": 5.725,
+  "colors": [
+   "#194896"
+  ],
+  "ink": true,
+  "source": "各种logo/中国科学院数字生命研究所.svg"
+ },
+ {
+  "file": "ras-digital-life.svg",
+  "subject": "institutes",
+  "kind": "wordmark",
+  "label": "Институт Цифровой Жизни РАН",
+  "animated": false,
+  "viewBox": "0 0 8930 1937",
+  "aspect": 4.61,
+  "colors": [
+   "#174c99"
+  ],
+  "ink": true,
+  "source": "各种logo/Институт Цифровой Жизни Российской Академии Наук.svg"
+ },
+ {
+  "file": "rank-master-sergeant-2.svg",
+  "subject": "insignia",
+  "kind": "insignia",
+  "label": "二级军士长 rank insignia with emblem",
+  "animated": false,
+  "viewBox": "0 0 3000 1200",
+  "aspect": 2.5,
+  "colors": [
+   "#2c2c2c",
+   "#818181",
+   "#dcdcdc"
+  ],
+  "ink": false,
+  "source": "各种logo/二级军士长 - 带徽.svg"
+ },
+ {
+  "file": "rank-master-sergeant-2-ueg.svg",
+  "subject": "insignia",
+  "kind": "insignia",
+  "label": "二级军士长 rank insignia with emblem and UEG",
+  "animated": false,
+  "viewBox": "0 0 3000 1200",
+  "aspect": 2.5,
+  "colors": [
+   "#2c2c2c",
+   "#818181",
+   "#dcdcdc"
+  ],
+  "ink": false,
+  "source": "各种logo/二级军士长 - 带徽字.svg"
+ },
+ {
+  "file": "framer.svg",
+  "subject": "insignia",
+  "kind": "emblem",
+  "label": "FRAMER exoskeleton soldier emblem",
+  "animated": false,
+  "viewBox": "0 0 1520 3000",
+  "aspect": 0.507,
+  "colors": [
+   "#000000"
+  ],
+  "ink": true,
+  "source": "各种logo/门框机器人.svg"
+ },
+ {
+  "file": "wireless-dc-power.svg",
+  "subject": "marks",
+  "kind": "icon",
+  "label": "Wireless DC power mark",
+  "animated": false,
+  "viewBox": "0 0 3768 1860",
+  "aspect": 2.026,
+  "colors": [
+   "#000000"
+  ],
+  "ink": true,
+  "source": "各种logo/无线直流供电 - 黑.svg"
+ },
+ {
+  "file": "countdown-numerals.svg",
+  "subject": "marks",
+  "kind": "graphic",
+  "label": "Countdown numeral sheet",
+  "animated": false,
+  "viewBox": "0 0 4105 4766",
+  "aspect": 0.861,
+  "colors": [
+   "#000000"
+  ],
+  "ink": true,
+  "source": "各种logo/核弹数字.svg"
+ }
+]

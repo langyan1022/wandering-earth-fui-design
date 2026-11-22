@@ -1,0 +1,682 @@
+<!doctype html>
+<!--
+  wandering-earth-fui-design — the tactical command console starter: start here for 3D, AI assistant, or multimodal consoles.
+  Combines .fui-console with 3px semantic header ticks (data-accent), Behance split-unit chronometer (.fui-chrono),
+  subject-avoiding contextual HUD viewers (.fui-hud-tray / .fui-hud-layer / .fui-hud-card), tactile segmented/matrix pickers
+  (.fui-seg-group / .fui-choice-grid), controllable rotating dot-matrix globe (fui-geo.js) + live site weather,
+  transparent floating glowing sine-wave audio (fui-audio.js), compact 3-tile mode deck (.fui-mode-deck), and always-on .fui-chat.
+
+  Serve over HTTP (ES modules), or bundle into one standalone HTML file:
+      python3 scripts/bundle_html.py assets/tactical.html -o tactical-console.html
+  Beats:  ?beat=nominal | speaking | degraded | critical      keys  [  ]      ?paused=1      ?lang=zh-CN | en      ?hud=intel | weather | audio
+-->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>550W · Tactical Command Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="fui.css">
+  <style>
+    /* View-specific layout only. All tokens, accents, chronometer, HUD viewers, and pickers come from fui.css. */
+    .tc-console { grid-template-columns: 272px minmax(0, 1fr) minmax(344px, 396px); }
+    .tc-strip { gap: var(--fui-space-2); border-left: 3px solid var(--fui-crit); }
+    .tc-brand { display: inline-flex; align-items: center; padding: 2px var(--fui-space-2); border: 1px solid var(--fui-line-hi); border-radius: var(--fui-radius-control); background: var(--fui-text-hi); }
+    .tc-brand img { display: block; width: 64px; height: 20px; object-fit: contain; }
+    .tc-spacer { flex: 1 1 auto; min-width: var(--fui-space-1); }
+    .tc-group { display: inline-flex; align-items: center; gap: var(--fui-space-2); flex: none; }
+    .tc-stack { display: grid; gap: var(--fui-space-2); }
+    .tc-angles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) auto; align-items: center; gap: var(--fui-space-2); padding-top: var(--fui-space-1); border-top: 1px solid var(--fui-line-1); }
+    .tc-angle { display: flex; align-items: baseline; gap: var(--fui-space-1); }
+    .tc-angle .fui-num { font-size: var(--fui-text-sm); color: var(--fui-data); min-width: 4ch; }
+    .tc-hw { display: grid; gap: 6px; }
+    .tc-hw__row { display: grid; gap: 3px; }
+    .tc-hw__row .fui-gauge-head { margin-bottom: 0; }
+    .tc-hw__row .fui-gauge { --segments: 16; height: 8px; }
+    .tc-geo { display: grid; grid-template-columns: 108px minmax(0, 1fr); gap: var(--fui-space-2); align-items: center; }
+    .tc-globe { display: block; width: 108px; height: 108px; border: 1px solid var(--fui-line-2); background: var(--fui-void); cursor: grab; touch-action: none; }
+    .tc-globe:active { cursor: grabbing; }
+    .tc-wx { display: grid; gap: 3px; min-width: 0; }
+    .tc-wx__city { font: 700 var(--fui-text-base) / 1.2 var(--fui-font-cjk); color: var(--fui-text-hi); }
+    .tc-wx__temp { display: flex; align-items: baseline; gap: 4px; }
+    .tc-wx__temp b { font-size: var(--fui-text-lg); color: var(--fui-text-hi); }
+    .tc-wx__meta { font-size: var(--fui-num-sm); color: var(--fui-text-dim); }
+    .tc-geo-bar { display: flex; flex-wrap: wrap; gap: var(--fui-space-1); margin-top: var(--fui-space-2); }
+    .tc-stage-body { display: flex; flex-direction: column; min-height: 0; }
+    .tc-stage-svg { position: absolute; inset: 0; width: 100%; height: 100%; transition: transform var(--fui-dur-slow) var(--fui-ease); }
+    .tc-stage-svg path, .tc-stage-svg rect, .tc-stage-svg circle { fill: none; stroke: var(--fui-text); stroke-width: 1.5; }
+    .tc-stage-svg .tc-optic { stroke: var(--fui-crit); }
+    .tc-stage-svg .tc-axis { stroke: var(--fui-act); stroke-dasharray: 4 4; }
+    @media (min-width: 1101px) {
+      .fui-stage__canvas-wrap[data-hud-dock="left"]  .tc-stage-svg { transform: translateX(148px); }
+      .fui-stage__canvas-wrap[data-hud-dock="right"] .tc-stage-svg { transform: translateX(-148px); }
+    }
+    .tc-plate-slot { position: absolute; z-index: 5; top: var(--fui-space-3); right: var(--fui-space-3); pointer-events: none; }
+    .tc-stage-wave { position: relative; z-index: 4; padding: var(--fui-space-1) var(--fui-space-3) var(--fui-space-2); pointer-events: none; }
+    .tc-stage-wave canvas { display: block; width: 100%; height: 42px; background: transparent; }
+    .tc-hud-spec { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--fui-space-2); margin-top: var(--fui-space-2); padding-top: var(--fui-space-2); border-top: 1px solid var(--fui-line-2); }
+    .tc-hud-spec dt { font-size: var(--fui-text-micro); color: var(--fui-text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+    .tc-hud-spec dd { margin: 2px 0 0; font-size: var(--fui-num-sm); color: var(--fui-text-hi); }
+    .tc-hud-plate { display: grid; place-items: center; padding: var(--fui-space-3); border: 1px solid var(--fui-line-2); background: var(--fui-text-hi); margin-bottom: var(--fui-space-2); }
+    .tc-hud-plate img { height: 48px; width: auto; }
+    .tc-dock-split { display: grid; grid-template-columns: minmax(292px, 1fr) minmax(0, 1.2fr); min-height: 0; }
+    .tc-dock-audio { border-right: 1px solid var(--fui-line-2); }
+    .tc-dock-audio .fui-voice { grid-template-columns: auto minmax(76px, 1fr) 8.5ch; gap: var(--fui-space-2); }
+    .tc-dock-audio .fui-voice__wave--none { white-space: nowrap; justify-content: center; }
+    .tc-authority { display: flex; align-items: center; gap: var(--fui-space-2); padding: var(--fui-space-2) var(--fui-space-3); border-bottom: 1px solid var(--fui-line-2); }
+    .tc-authority__emblem { width: 28px; height: 28px; flex: none; background: var(--fui-text-hi); -webkit-mask: url(logos/ueg-emblem.svg) center / contain no-repeat; mask: url(logos/ueg-emblem.svg) center / contain no-repeat; }
+    .tc-authority__text { display: grid; gap: 2px; min-width: 0; margin-right: auto; }
+    .tc-authority__text strong { font: 700 var(--fui-text-sm) / 1.1 var(--fui-font-sans); color: var(--fui-text-hi); letter-spacing: 0.08em; }
+    .tc-authority__text span { font-size: var(--fui-num-sm); color: var(--fui-text-dim); }
+    .tc-comms { flex: 1 1 0; min-height: 0; }
+    .tc-turn-idx { font-size: var(--fui-num-sm); color: var(--fui-intel); }
+    .tc-quick { display: flex; flex-wrap: wrap; gap: var(--fui-space-1); padding: var(--fui-space-1) var(--fui-space-3); border-top: 1px solid var(--fui-line-1); }
+    @media (max-width: 1100px) {
+      .tc-console { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+      .tc-strip { flex-wrap: wrap; }
+      .tc-spacer { display: none; }
+      .tc-group { flex-wrap: wrap; }
+      .tc-dock-split { grid-template-columns: minmax(0, 1fr); }
+      .tc-dock-audio { border-right: 0; border-bottom: 1px solid var(--fui-line-2); }
+      .tc-comms { min-height: 360px; max-height: 520px; }
+    }
+    @media (max-width: 720px) {
+      .tc-console { grid-template-columns: minmax(0, 1fr); }
+      .tc-hide-sm { display: none; }
+    }
+  </style>
+</head>
+<body class="fui">
+<div class="fui-console tc-console">
+  <!-- Status Strip + Alert Banner Slot -->
+  <header class="fui-console__head">
+    <div class="fui-strip tc-strip">
+      <span class="tc-brand"><img src="logos/550w.svg" alt="550W" width="64" height="20"></span>
+      <h1 class="fui-console__title" data-i18n="strip.title">550W 战术控制台</h1>
+      <span class="fui-badge" data-state="warn" data-i18n="strip.sim">模拟模式</span>
+      <span class="tc-spacer"></span>
+      <div class="tc-group">
+        <span class="fui-live" id="live" data-live="true">
+          <i class="fui-live__dot" aria-hidden="true"></i><span class="fui-live__word" id="live-word" role="status">在线</span>
+        </span>
+        <time class="fui-chrono fui-chrono--strip fui-num tc-hide-sm" id="strip-chrono"></time>
+        <button class="fui-btn" id="freeze-btn" type="button" aria-pressed="false" data-i18n="action.freeze">冻结</button>
+        <div class="fui-lang" role="group" aria-label="Language" data-i18n-label="label.lang">
+          <button class="fui-lang__opt" type="button" lang="en" aria-pressed="false">EN</button>
+          <button class="fui-lang__opt" type="button" lang="zh-CN" aria-pressed="true">中文</button>
+        </div>
+      </div>
+    </div>
+    <div class="fui-msg fui-msg--banner" id="banner" data-state="warn" role="alert" hidden>
+      <span class="fui-badge fui-badge--solid" id="banner-badge" data-state="warn">警告</span>
+      <div class="fui-msg__main">
+        <p class="fui-msg__title" id="banner-title"></p>
+        <p class="fui-msg__detail" id="banner-detail"></p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Left Rail: Camera Matrix + Hardware Telemetry + Rotating Globe & Live Weather -->
+  <nav class="fui-console__nav fui-rail" aria-label="系统遥测与定位" data-i18n-label="label.nav">
+    <section class="fui-panel" data-accent="crit" aria-labelledby="p-cam">
+      <header class="fui-panel__head">
+        <h2 class="fui-panel__title" id="p-cam" data-i18n="panel.cam">机位视角阵列</h2>
+        <span class="fui-panel__id fui-num" id="cam-idx">01 / 06</span>
+      </header>
+      <div class="fui-panel__body tc-stack">
+        <div class="fui-keys fui-keys--grid" id="cam-matrix" role="group" aria-labelledby="p-cam" style="--fui-cols: 2"></div>
+        <div class="tc-angles">
+          <div class="tc-angle"><span class="fui-label" data-i18n="cam.yaw">方位</span><span class="fui-num" id="cam-yaw">+0°</span></div>
+          <div class="tc-angle"><span class="fui-label" data-i18n="cam.pitch">俯仰</span><span class="fui-num" id="cam-pitch">+0°</span></div>
+          <button class="fui-btn" id="cam-reset" type="button" data-i18n="action.reset">复位</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="fui-panel" data-accent="data" aria-labelledby="p-hw">
+      <header class="fui-panel__head">
+        <h2 class="fui-panel__title" id="p-hw" data-i18n="panel.hw">本机硬件遥测</h2>
+        <span class="fui-badge" id="hw-badge" data-state="ok" data-i18n="state.nominal">正常</span>
+      </header>
+      <div class="fui-panel__body tc-hw">
+        <div class="tc-hw__row"><div class="fui-gauge-head"><span class="fui-label" data-i18n="hw.cpu">处理器</span><span class="fui-num" id="hw-cpu">24 %</span></div><div class="fui-gauge" id="g-cpu" data-state="data" role="meter" aria-label="CPU" aria-valuemin="0" aria-valuemax="100" aria-valuenow="24"></div></div>
+        <div class="tc-hw__row"><div class="fui-gauge-head"><span class="fui-label" data-i18n="hw.mem">内存</span><span class="fui-num" id="hw-mem">58 %</span></div><div class="fui-gauge" id="g-mem" data-state="data" role="meter" aria-label="Memory" aria-valuemin="0" aria-valuemax="100" aria-valuenow="58"></div></div>
+        <div class="tc-hw__row"><div class="fui-gauge-head"><span class="fui-label" data-i18n="hw.pwr">电量</span><span class="fui-num" id="hw-pwr">96 %</span></div><div class="fui-gauge" id="g-pwr" data-state="ok" role="meter" aria-label="Power" aria-valuemin="0" aria-valuemax="100" aria-valuenow="96"></div></div>
+        <div class="tc-hw__row"><div class="fui-gauge-head"><span class="fui-label" data-i18n="hw.disk">磁盘</span><span class="fui-num" id="hw-disk">62 %</span></div><div class="fui-gauge" id="g-disk" data-state="data" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62"></div></div>
+      </div>
+    </section>
+
+    <section class="fui-panel" data-accent="ok" aria-labelledby="p-geo">
+      <header class="fui-panel__head">
+        <h2 class="fui-panel__title" id="p-geo" data-i18n="panel.geo">地球定位与气象</h2>
+        <span class="fui-panel__id fui-num" id="geo-code">CN-BJ</span>
+      </header>
+      <div class="fui-panel__body">
+        <div class="tc-geo">
+          <canvas class="tc-globe" id="geo-globe" tabindex="0" role="application" aria-label="Dot-matrix globe. Arrow keys rotate."></canvas>
+          <div class="tc-wx">
+            <span class="tc-wx__city" id="wx-city">北京</span>
+            <div class="tc-wx__temp"><b class="fui-num" id="wx-temp">14.2</b><span class="fui-unit">°C</span><span class="fui-label" id="wx-cond">多云</span></div>
+            <span class="tc-wx__meta fui-num" id="wx-facts">11 km/h · 46 %</span>
+            <span class="tc-wx__meta fui-num" id="wx-coord">39.90°N 116.41°E</span>
+          </div>
+        </div>
+        <div class="tc-geo-bar">
+          <button class="fui-btn" id="geo-spin" type="button" aria-pressed="true" data-i18n="geo.spin">自转</button>
+          <div class="fui-choice-grid" id="city-grid" role="radiogroup" aria-label="City" style="--fui-cols: 3; flex: 1 1 auto;"></div>
+        </div>
+      </div>
+    </section>
+  </nav>
+
+  <!-- Center Column: Primary Blueprint Viewport (ONLY .fui-field) + Contextual HUD Layer + Bottom Dock -->
+  <main class="fui-console__main">
+    <section class="fui-panel fui-bracket fui-console__viewport" data-accent="data" aria-labelledby="p-stage">
+      <header class="fui-panel__head">
+        <h2 class="fui-panel__title" id="p-stage" data-i18n="panel.stage">550W 机体主视口</h2>
+        <span class="fui-badge" id="stage-badge" data-state="idle" data-i18n="state.standby">待命</span>
+        <div class="fui-hud-tray" id="hud-tray" role="group" aria-label="HUD viewers" data-i18n-label="label.hud"></div>
+      </header>
+      <div class="fui-panel__body fui-panel__body--flush fui-field tc-stage-body">
+        <div class="fui-stage__canvas-wrap" id="stage-wrap" data-hud-dock="left">
+          <!-- Replace this vector rig with your real Three.js / WebGL 3D canvas in production -->
+          <svg class="tc-stage-svg" id="stage-svg" viewBox="0 0 800 460" role="img" aria-label="550W optical assembly">
+            <line class="tc-axis" x1="80" y1="230" x2="720" y2="230"/>
+            <line x1="400" y1="40" x2="400" y2="420" stroke-dasharray="2 6"/>
+            <rect x="296" y="104" width="208" height="252"/>
+            <rect x="320" y="132" width="160" height="142"/>
+            <circle cx="400" cy="202" r="52"/>
+            <circle class="tc-optic" cx="400" cy="202" r="24"/>
+            <circle class="tc-optic" cx="400" cy="202" r="6"/>
+            <path d="M296 146H258V282H296M504 146H542V282H504"/>
+            <rect x="348" y="294" width="104" height="36"/>
+          </svg>
+
+          <!-- Quiet-Stage Behance Split-Unit Chronometer -->
+          <div class="fui-stage-chrono" id="stage-chrono">
+            <span class="fui-stage-chrono__kicker">CURRENT SYSTEM TIME</span>
+            <div class="fui-chrono fui-chrono--hero fui-num" id="hero-chrono"></div>
+            <div class="fui-stage-chrono__sub">
+              <span data-i18n="stage.sync">550W 实时遥测同步</span>
+              <span class="fui-num">UP <b id="uptime">00H 00M 00S</b></span>
+            </div>
+          </div>
+
+          <!-- Dynamic Headline Plate (shown on active / alert beats) -->
+          <div class="tc-plate-slot">
+            <div class="fui-plate" id="stage-plate" role="status" hidden>
+              <span class="fui-plate__kicker" id="plate-kicker">550W · CORE</span>
+              <strong class="fui-plate__title" id="plate-title"></strong>
+              <span class="fui-plate__meta fui-num" id="plate-meta"></span>
+            </div>
+          </div>
+
+          <!-- Subject-Avoiding Contextual HUD Viewer Layer -->
+          <div class="fui-hud-layer" id="hud-layer" aria-live="polite"></div>
+        </div>
+
+        <!-- Floating Transparent Stage Voice Orbit -->
+        <div class="tc-stage-wave">
+          <canvas id="stage-orbit" role="img" aria-label="Stage audio carrier wave"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="fui-panel fui-console__dock" aria-labelledby="p-dock">
+      <header class="fui-panel__head">
+        <h2 class="fui-panel__title" id="p-dock" data-i18n="panel.dock">音频监测与运行日志</h2>
+        <span class="fui-panel__id fui-num" id="dock-beat">BEAT · NOMINAL</span>
+      </header>
+      <div class="fui-panel__body fui-panel__body--flush tc-dock-split">
+        <div class="tc-dock-audio">
+          <ul class="fui-voice-list" aria-label="Voice channels">
+            <li class="fui-voice">
+              <span class="fui-tagcode"><span class="fui-badge" id="mic-badge" data-state="warn" data-i18n="state.standby">待命</span><span class="fui-tagcode__code fui-num">MIC-IN</span></span>
+              <canvas class="fui-audio__view fui-voice__wave" id="mic-wave" hidden role="img" aria-label="Microphone wave"></canvas>
+              <span class="fui-voice__wave fui-voice__wave--none" id="mic-nosig" data-i18n="audio.nosig">无信号</span>
+              <span class="fui-num fui-voice__level" id="mic-db">—</span>
+            </li>
+            <li class="fui-voice">
+              <span class="fui-tagcode"><span class="fui-badge" id="out-badge" data-state="data" data-i18n="state.standby">待命</span><span class="fui-tagcode__code fui-num">OUT-CH</span></span>
+              <canvas class="fui-audio__view fui-voice__wave" id="out-wave" hidden role="img" aria-label="Output wave"></canvas>
+              <span class="fui-voice__wave fui-voice__wave--none" id="out-nosig" data-i18n="audio.nosig">无信号</span>
+              <span class="fui-num fui-voice__level" id="out-db">—</span>
+            </li>
+          </ul>
+        </div>
+        <div class="fui-table-wrap" role="region" tabindex="0" aria-label="Event log">
+          <table class="fui-table fui-table--compact">
+            <caption class="fui-sr-only">Runtime event log</caption>
+            <thead><tr><th scope="col" data-i18n="log.time">时间</th><th scope="col" data-i18n="log.src">来源</th><th scope="col" data-i18n="log.msg">事件</th><th scope="col" data-i18n="log.lvl">级别</th></tr></thead>
+            <tbody id="log-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Right Rail: Authority Header + 3-Tile Mode Deck + Always-On Tactical Comms -->
+  <aside class="fui-console__aside fui-rail" aria-label="指挥授权与通讯终端" data-i18n-label="label.aside">
+    <section class="fui-panel" data-accent="intel" aria-labelledby="p-auth">
+      <div class="tc-authority">
+        <span class="tc-authority__emblem" role="img" aria-label="UEG Emblem"></span>
+        <div class="tc-authority__text">
+          <strong id="p-auth" data-i18n="auth.org">北京航天中心 · BSC</strong>
+          <span class="fui-num">550W CORE · UNIT 01</span>
+        </div>
+        <span class="fui-badge" data-state="ok" data-i18n="auth.verified">已核验</span>
+      </div>
+      <div class="fui-mode-deck" role="group" aria-label="Modes">
+        <button class="fui-mode-deck__tile" id="m-tts" type="button" data-state="ok" aria-pressed="true"><span class="fui-label">TTS-01</span><span class="fui-mode-deck__val fui-num" id="m-tts-v">ON</span></button>
+        <button class="fui-mode-deck__tile" id="m-hud" type="button" data-state="intel" aria-pressed="true"><span class="fui-label">HUD-02</span><span class="fui-mode-deck__val fui-num" id="m-hud-v">AUTO</span></button>
+        <button class="fui-mode-deck__tile" id="m-core" type="button" data-state="data"><span class="fui-label">CORE-03</span><span class="fui-mode-deck__val fui-num">550W</span></button>
+      </div>
+      <div class="fui-panel__body">
+        <div class="fui-seg-group fui-seg-group--3" id="wave-seg" role="radiogroup" aria-label="Waveform style">
+          <button class="fui-seg-btn" type="button" role="radio" data-wave="orbit" aria-checked="true" data-i18n="wave.orbit">流光轨道</button>
+          <button class="fui-seg-btn" type="button" role="radio" data-wave="lines" aria-checked="false" data-i18n="wave.lines">密线频谱</button>
+          <button class="fui-seg-btn" type="button" role="radio" data-wave="bars" aria-checked="false" data-i18n="wave.bars">分段柱状</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="fui-panel tc-comms" data-accent="intel" aria-labelledby="p-comms">
+      <header class="fui-panel__head">
+        <h2 class="fui-panel__title" id="p-comms" data-i18n="panel.comms">指令通讯终端</h2>
+        <span class="fui-panel__id fui-num">CH-01</span>
+      </header>
+      <div class="fui-chat">
+        <ol class="fui-chat__log" id="chat-log" role="log" aria-label="Comms log" tabindex="0"></ol>
+        <div class="tc-quick" role="group" aria-label="Quick triggers">
+          <button class="fui-btn" type="button" data-open-hud="intel" data-i18n="hud.intel">图文·550W</button>
+          <button class="fui-btn" type="button" data-open-hud="weather" data-i18n="hud.weather">气象</button>
+          <button class="fui-btn" type="button" data-open-hud="audio" data-i18n="hud.audio">音频</button>
+        </div>
+        <form class="fui-chat__composer" id="composer" aria-label="Send directive">
+          <label class="fui-sr-only" for="chat-in">Directive</label>
+          <div class="fui-chat__field">
+            <span class="fui-chat__prompt" aria-hidden="true">&gt;</span>
+            <textarea class="fui-chat__input" id="chat-in" rows="1" placeholder="输入指令或调取档案…"></textarea>
+            <button class="fui-btn fui-btn--primary" type="submit" data-i18n="action.send">发送</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </aside>
+
+  <footer class="fui-strip fui-console__footer">
+    <span class="fui-label" data-i18n="foot.keys">场景切换</span>
+    <span class="fui-num">[ ] · NOMINAL / SPEAKING / DEGRADED / CRITICAL</span>
+    <span class="tc-spacer"></span>
+    <span class="fui-num" id="foot-status">SIMULATED · READY</span>
+  </footer>
+</div>
+
+<script type="module">
+  import { createScenario, createFeed, seeded, wander } from './fui-sim.js';
+  import { drawGlobe, attachGlobeControls, flyTo } from './fui-geo.js';
+  import { createOrbit, drawOrbit, drawSpectrum, drawEnvelope } from './fui-audio.js';
+
+  const MSG = {
+    'zh-CN': {
+      'strip.title': '550W 战术控制台', 'strip.sim': '模拟模式', 'action.freeze': '冻结', 'action.resume': '恢复',
+      'action.reset': '复位', 'action.send': '发送', 'label.lang': '语言', 'label.nav': '系统遥测与定位',
+      'label.hud': '上下文情报浮窗', 'label.aside': '指挥授权与通讯终端', 'panel.cam': '机位视角阵列',
+      'panel.hw': '本机硬件遥测', 'panel.geo': '地球定位与气象', 'panel.stage': '550W 机体主视口',
+      'panel.dock': '音频监测与运行日志', 'panel.comms': '指令通讯终端', 'cam.yaw': '方位', 'cam.pitch': '俯仰',
+      'hw.cpu': '处理器', 'hw.mem': '内存', 'hw.pwr': '电量', 'hw.disk': '磁盘', 'geo.spin': '自转',
+      'stage.sync': '550W 实时遥测同步', 'state.nominal': '正常', 'state.standby': '待命',
+      'state.speaking': '播报中', 'state.degraded': '负载偏高', 'state.critical': '过热告警',
+      'audio.nosig': '无信号', 'audio.active': '运行', 'log.time': '时间', 'log.src': '来源',
+      'log.msg': '事件', 'log.lvl': '级别', 'auth.org': '北京航天中心 · BSC', 'auth.verified': '已核验',
+      'wave.orbit': '流光轨道', 'wave.lines': '密线频谱', 'wave.bars': '分段柱状',
+      'hud.intel': '图文·550W', 'hud.weather': '气象', 'hud.audio': '音频', 'foot.keys': '场景切换',
+      'live.on': '在线', 'live.frozen': '已冻结', 'hud.dock': '换边', 'hud.expand': '展开', 'hud.close': '关闭',
+      'hud.recall': '弹窗 · 550W 档案', 'hud.wx_recall': '弹窗 · 气象情报',
+    },
+    en: {
+      'strip.title': '550W Tactical Console', 'strip.sim': 'Simulated', 'action.freeze': 'Freeze', 'action.resume': 'Resume',
+      'action.reset': 'Reset', 'action.send': 'Send', 'label.lang': 'Language', 'label.nav': 'Telemetry and location',
+      'label.hud': 'Contextual HUD viewers', 'label.aside': 'Authority and comms', 'panel.cam': 'Camera array',
+      'panel.hw': 'Host telemetry', 'panel.geo': 'Earth track & weather', 'panel.stage': '550W unit viewport',
+      'panel.dock': 'Audio & runtime log', 'panel.comms': 'Tactical comms', 'cam.yaw': 'Yaw', 'cam.pitch': 'Pitch',
+      'hw.cpu': 'CPU', 'hw.mem': 'Memory', 'hw.pwr': 'Power', 'hw.disk': 'Disk', 'geo.spin': 'Spin',
+      'stage.sync': '550W live telemetry sync', 'state.nominal': 'Nominal', 'state.standby': 'Standby',
+      'state.speaking': 'Speaking', 'state.degraded': 'Degraded', 'state.critical': 'Critical',
+      'audio.nosig': 'No signal', 'audio.active': 'Active', 'log.time': 'Time', 'log.src': 'Source',
+      'log.msg': 'Event', 'log.lvl': 'Level', 'auth.org': 'Beijing Space Center', 'auth.verified': 'Verified',
+      'wave.orbit': 'Orbit', 'wave.lines': 'Lines', 'wave.bars': 'Bars',
+      'hud.intel': 'Intel · 550W', 'hud.weather': 'Weather', 'hud.audio': 'Audio', 'foot.keys': 'Beats',
+      'live.on': 'Live', 'live.frozen': 'Frozen', 'hud.dock': 'Side', 'hud.expand': 'Expand', 'hud.close': 'Close',
+      'hud.recall': 'Popup · 550W Dossier', 'hud.wx_recall': 'Popup · Weather',
+    },
+  };
+
+  const CAMS = [
+    { id: 'main', zh: '主视', en: 'Main', code: '01 · MAIN', yaw: 0, pitch: 0 },
+    { id: 'front', zh: '正面', en: 'Front', code: '02 · FRONT', yaw: 12, pitch: -4 },
+    { id: 'optics', zh: '镜头', en: 'Optics', code: '03 · OPTICS', yaw: -18, pitch: 6 },
+    { id: 'panel', zh: '仪表', en: 'Panel', code: '04 · PANEL', yaw: 28, pitch: -10 },
+    { id: 'array', zh: '六灯', en: 'Array', code: '05 · ARRAY', yaw: -35, pitch: 2 },
+    { id: 'whole', zh: '整机', en: 'Whole', code: '06 · WHOLE', yaw: 42, pitch: -14 },
+  ];
+  const CITIES = [
+    { id: 'bj', code: 'CN-BJ', zh: '北京', en: 'Beijing', lat: 39.90, lon: 116.41, temp: 14.2, condZh: '多云', condEn: 'Cloudy', wind: 11, hum: 46 },
+    { id: 'sh', code: 'CN-SH', zh: '上海', en: 'Shanghai', lat: 31.23, lon: 121.47, temp: 18.0, condZh: '局部多云', condEn: 'Partly cloudy', wind: 14, hum: 58 },
+    { id: 'ga', code: 'GA-LB', zh: '加蓬', en: 'Gabon', lat: 0.39, lon: 9.45, temp: 27.4, condZh: '晴朗', condEn: 'Clear', wind: 9, hum: 72 },
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const qs = new URLSearchParams(location.search);
+  let locale = qs.get('lang') === 'en' ? 'en' : 'zh-CN';
+  const t = (k) => MSG[locale][k] ?? MSG.en[k] ?? k;
+  const rand = seeded(42);
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const orbit = createOrbit(36);
+
+  const state = {
+    beat: 'nominal', cam: 'main', city: CITIES[0], hud: qs.get('hud') || 'intel',
+    dock: 'left', expanded: false, wave: 'orbit', spin: true,
+    cpu: 24, mem: 58, pwr: 96, disk: 62, elapsed: 46, time: new Date(),
+    logs: [
+      { ts: '15:42:55', src: 'CORE', msg: '550W telemetry synchronized', lvl: 'ok' },
+      { ts: '15:42:14', src: 'HUD', msg: 'Intel dossier INTEL-550W projected', lvl: 'data' },
+    ],
+  };
+
+  const view = { lon: state.city.lon, lat: state.city.lat };
+  let spinRaf = 0;
+
+  function renderChrono(el, d) {
+    const p = (n) => String(n).padStart(2, '0');
+    el.innerHTML = `<span class="fui-chrono__major">${d.getFullYear()}</span><span class="fui-chrono__unit">Y</span>`
+      + `<span class="fui-chrono__major">${p(d.getMonth() + 1)}</span><span class="fui-chrono__unit">M</span>`
+      + `<span class="fui-chrono__major">${p(d.getDate())}</span><span class="fui-chrono__unit">D</span><span class="fui-chrono__gap"></span>`
+      + `<span class="fui-chrono__minor">${p(d.getHours())}</span><span class="fui-chrono__unit">H</span>`
+      + `<span class="fui-chrono__minor">${p(d.getMinutes())}</span><span class="fui-chrono__unit">MIN</span>`
+      + `<span class="fui-chrono__minor fui-chrono__sec">${p(d.getSeconds())}</span><span class="fui-chrono__unit">S</span>`;
+  }
+
+  function setGauge(id, pct, st) {
+    const el = $(id);
+    const snapped = Math.round((pct / 100) * 16) / 16;
+    el.style.setProperty('--fui-value', snapped.toFixed(3));
+    el.setAttribute('aria-valuenow', String(Math.round(pct)));
+    el.dataset.state = st;
+  }
+
+  function redrawGlobe() {
+    drawGlobe($('geo-globe'), {
+      ...view,
+      markers: [{ id: state.city.code, lon: state.city.lon, lat: state.city.lat, state: 'ok', selected: true }],
+    });
+  }
+
+  function drawAudio() {
+    const active = state.beat === 'speaking';
+    const bands = new Float32Array(36);
+    for (let i = 0; i < 36; i++) {
+      bands[i] = active ? 0.25 + 0.55 * Math.abs(Math.sin(i * 0.45 + state.elapsed * 0.3)) : 0;
+    }
+    if (state.wave === 'orbit') {
+      drawOrbit($('stage-orbit'), orbit, { bands, dt: feed.paused || reduced.matches ? 0 : 0.016, layout: 'line', waves: 3, glow: true, particles: true, ambient: true, ink: 'data' });
+    } else {
+      drawSpectrum($('stage-orbit'), bands, { style: state.wave, ink: 'data', segments: 10 });
+    }
+    $('out-wave').hidden = !active;
+    $('out-nosig').hidden = active;
+    $('out-badge').dataset.state = active ? 'ok' : 'data';
+    $('out-badge').textContent = t(active ? 'audio.active' : 'state.standby');
+    $('out-db').textContent = active ? '−11.4 dBFS' : '—';
+    if (active) {
+      const env = new Float32Array(96);
+      for (let i = 0; i < env.length; i++) env[i] = 0.18 + 0.62 * Math.abs(Math.sin(i * 0.22));
+      drawEnvelope($('out-wave'), env);
+    }
+  }
+
+  function renderHud() {
+    const tray = $('hud-tray');
+    const items = [
+      { id: 'intel', state: 'intel', label: t('hud.intel') },
+      { id: 'weather', state: 'data', label: t('hud.weather') },
+      { id: 'audio', state: 'ok', label: t('hud.audio') },
+    ];
+    tray.innerHTML = items.map((it) => `
+      <button class="fui-hud-chip" type="button" data-state="${it.state}" data-hud="${it.id}" aria-pressed="${state.hud === it.id}">
+        <i class="fui-hud-chip__dot" aria-hidden="true"></i><span>${it.label}</span>
+      </button>`).join('');
+
+    const wrap = $('stage-wrap');
+    if (!state.hud) {
+      delete wrap.dataset.hudDock;
+      $('hud-layer').replaceChildren();
+      return;
+    }
+    wrap.dataset.hudDock = state.expanded ? 'expand' : state.dock;
+    const isZh = locale === 'zh-CN';
+    const cards = {
+      intel: {
+        st: 'intel', code: 'INTEL-550W', title: isZh ? '550W 智能量子计算机 · MOSS' : '550W Quantum Computer · MOSS',
+        body: `<div class="tc-hud-plate"><img src="logos/550w.svg" alt="550W"></div>
+          <p>${isZh ? '550 系列便携式量子计算节点，搭载多轴光学红光传感阵列与自主决策核心。' : 'Portable 550-series quantum node with red-aperture optical sensor and autonomous coordination core.'}</p>
+          <dl class="tc-hud-spec"><div><dt>${isZh ? '设备代号' : 'Designation'}</dt><dd class="fui-num">550W / MOSS</dd></div><div><dt>${isZh ? '隶属机构' : 'Authority'}</dt><dd>UEG · BSC</dd></div></dl>`,
+      },
+      weather: {
+        st: 'data', code: 'METEO-03', title: isZh ? `实时气象 · ${state.city.zh}` : `Meteorology · ${state.city.en}`,
+        body: `<p><strong class="fui-num">${state.city.temp.toFixed(1)} °C</strong> · ${isZh ? state.city.condZh : state.city.condEn}</p>
+          <dl class="tc-hud-spec"><div><dt>${isZh ? '风速' : 'Wind'}</dt><dd class="fui-num">${state.city.wind} km/h</dd></div><div><dt>${isZh ? '湿度' : 'Humidity'}</dt><dd class="fui-num">${state.city.hum} %</dd></div></dl>`,
+      },
+      audio: {
+        st: 'ok', code: 'AUD-02', title: isZh ? 'FUI 音频监控通道' : 'FUI Audio Monitor',
+        body: `<p>${isZh ? '零原生胶囊控件：采用统一 FUI 细线播控与共享 AnalyserNode 频谱桥接。' : 'Zero native browser pills: flat FUI transport bridged to the shared stage AnalyserNode.'}</p>
+          <dl class="tc-hud-spec"><div><dt>${isZh ? '采样率' : 'Sample Rate'}</dt><dd class="fui-num">48 kHz</dd></div><div><dt>${isZh ? '声道' : 'Channel'}</dt><dd class="fui-num">OUT-CH · 24-BIT</dd></div></dl>`,
+      },
+    };
+    const c = cards[state.hud] || cards.intel;
+    $('hud-layer').innerHTML = `
+      <article class="fui-hud-card fui-bracket" data-state="${c.st}" data-expanded="${state.expanded}">
+        <header class="fui-hud-card__head">
+          <span class="fui-badge fui-badge--solid" data-state="${c.st}">${c.code}</span>
+          <h3 class="fui-hud-card__title">${c.title}</h3>
+          <div class="fui-hud-card__ctrls">
+            <button class="fui-hud-ctrl" type="button" data-hud-act="side" aria-label="${t('hud.dock')}">⇄</button>
+            <button class="fui-hud-ctrl" type="button" data-hud-act="expand" aria-pressed="${state.expanded}" aria-label="${t('hud.expand')}">⤢</button>
+            <button class="fui-hud-ctrl" type="button" data-hud-act="close" aria-label="${t('hud.close')}">×</button>
+          </div>
+        </header>
+        <div class="fui-hud-card__body">${c.body}</div>
+      </article>`;
+  }
+
+  function render() {
+    const isZh = locale === 'zh-CN';
+    renderChrono($('strip-chrono'), state.time);
+    renderChrono($('hero-chrono'), state.time);
+    const h = String(Math.floor(state.elapsed / 3600)).padStart(2, '0');
+    const m = String(Math.floor((state.elapsed % 3600) / 60)).padStart(2, '0');
+    const s = String(state.elapsed % 60).padStart(2, '0');
+    $('uptime').textContent = `${h}H ${m}M ${s}S`;
+
+    const camIdx = CAMS.findIndex((c) => c.id === state.cam);
+    $('cam-idx').textContent = `0${camIdx + 1} / 06`;
+    $('cam-yaw').textContent = `${CAMS[camIdx].yaw >= 0 ? '+' : '−'}${Math.abs(CAMS[camIdx].yaw)}°`;
+    $('cam-pitch').textContent = `${CAMS[camIdx].pitch >= 0 ? '+' : '−'}${Math.abs(CAMS[camIdx].pitch)}°`;
+    for (const k of $('cam-matrix').children) k.setAttribute('aria-pressed', String(k.dataset.cam === state.cam));
+
+    const cpuSt = state.cpu >= 90 ? 'crit' : state.cpu >= 75 ? 'warn' : 'data';
+    $('hw-cpu').textContent = `${Math.round(state.cpu)} %`; setGauge('g-cpu', state.cpu, cpuSt);
+    $('hw-mem').textContent = `${Math.round(state.mem)} %`; setGauge('g-mem', state.mem, state.mem >= 85 ? 'warn' : 'data');
+    $('hw-pwr').textContent = `${Math.round(state.pwr)} %`; setGauge('g-pwr', state.pwr, 'ok');
+    $('hw-disk').textContent = `${Math.round(state.disk)} %`; setGauge('g-disk', state.disk, 'data');
+    $('hw-badge').dataset.state = cpuSt === 'data' ? 'ok' : cpuSt;
+    $('hw-badge').textContent = t(cpuSt === 'crit' ? 'state.critical' : cpuSt === 'warn' ? 'state.degraded' : 'state.nominal');
+
+    $('geo-code').textContent = state.city.code;
+    $('wx-city').textContent = isZh ? state.city.zh : state.city.en;
+    $('wx-temp').textContent = state.city.temp.toFixed(1);
+    $('wx-cond').textContent = isZh ? state.city.condZh : state.city.condEn;
+    $('wx-facts').textContent = `${state.city.wind} km/h · ${state.city.hum} %`;
+    $('wx-coord').textContent = `${Math.abs(state.city.lat).toFixed(2)}°${state.city.lat >= 0 ? 'N' : 'S'} ${Math.abs(state.city.lon).toFixed(2)}°${state.city.lon >= 0 ? 'E' : 'W'}`;
+    for (const k of $('city-grid').children) k.setAttribute('aria-checked', String(k.dataset.city === state.city.id));
+    redrawGlobe();
+
+    const b = state.beat;
+    const stMap = { nominal: ['idle', 'state.standby'], speaking: ['ok', 'state.speaking'], degraded: ['warn', 'state.degraded'], critical: ['crit', 'state.critical'] }[b];
+    $('stage-badge').dataset.state = stMap[0];
+    $('stage-badge').textContent = t(stMap[1]);
+    $('dock-beat').textContent = `BEAT · ${b.toUpperCase()}`;
+
+    const showAlert = b === 'degraded' || b === 'critical';
+    $('banner').hidden = !showAlert;
+    $('stage-plate').hidden = !showAlert;
+    $('stage-chrono').hidden = showAlert;
+    if (showAlert) {
+      const lv = b === 'critical' ? 'crit' : 'warn';
+      $('banner').dataset.state = lv;
+      $('banner-badge').dataset.state = lv;
+      $('banner-badge').textContent = t(stMap[1]);
+      $('banner-title').textContent = isZh ? (b === 'critical' ? '核心计算单元过热' : '计算负载高于阈值') : (b === 'critical' ? 'Core thermal threshold exceeded' : 'Compute load above threshold');
+      $('banner-detail').textContent = `CPU ${Math.round(state.cpu)} % · MEM ${Math.round(state.mem)} %`;
+      $('stage-plate').dataset.state = lv;
+      $('plate-title').textContent = t(stMap[1]);
+      $('plate-meta').textContent = `CPU ${Math.round(state.cpu)} %`;
+    }
+
+    $('log-body').innerHTML = state.logs.map((r) => `
+      <tr><td class="fui-num">${r.ts}</td><td class="fui-num">${r.src}</td><td>${r.msg}</td><td><span class="fui-badge" data-state="${r.lvl}">${r.lvl.toUpperCase()}</span></td></tr>`).join('');
+
+    $('chat-log').innerHTML = `
+      <li class="fui-chat__item" data-from="self">
+        <div class="fui-chat__head"><span class="tc-turn-idx fui-num">01</span><span class="fui-chat__from">OP-01</span><time class="fui-chat__time">15:41:19</time></div>
+        <div class="fui-chat__body"><p>${isZh ? '调取 550W 技术档案与当前气象。' : 'Open the 550W technical dossier and current site weather.'}</p></div>
+      </li>
+      <li class="fui-chat__item" data-from="assistant">
+        <div class="fui-chat__head"><span class="fui-chat__from">MOSS</span><span class="fui-badge" data-state="intel">INTEL</span><time class="fui-chat__time">15:41:21</time></div>
+        <div class="fui-chat__body"><p>${isZh ? '已将 550W 图文档案投影至主视口左侧并自动避让主体。' : 'Projected the 550W dossier on the left side of the stage without obstructing the unit.'}</p></div>
+        <div class="fui-chat__actions">
+          <button class="fui-btn" type="button" data-open-hud="intel">${t('hud.recall')}</button>
+          <button class="fui-btn" type="button" data-open-hud="weather">${t('hud.wx_recall')}</button>
+        </div>
+      </li>`;
+
+    renderHud();
+    drawAudio();
+  }
+
+  function buildDynamicControls() {
+    const isZh = locale === 'zh-CN';
+    $('cam-matrix').innerHTML = CAMS.map((c) => `
+      <button class="fui-key" type="button" data-cam="${c.id}" aria-pressed="${c.id === state.cam}">
+        <span class="fui-key__name">${isZh ? c.zh : c.en}</span><span class="fui-key__code fui-num">${c.code}</span>
+      </button>`).join('');
+    $('city-grid').innerHTML = CITIES.map((c) => `
+      <button class="fui-choice-key" type="button" role="radio" data-city="${c.id}" aria-checked="${c.id === state.city.id}">${isZh ? c.zh : c.en}</button>`).join('');
+  }
+
+  function setLocale(next) {
+    locale = next === 'en' ? 'en' : 'zh-CN';
+    document.documentElement.lang = locale;
+    for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
+    for (const el of document.querySelectorAll('[data-i18n-label]')) el.setAttribute('aria-label', t(el.dataset.i18nLabel));
+    for (const el of document.querySelectorAll('.fui-lang__opt')) el.setAttribute('aria-pressed', String(el.lang === locale));
+    buildDynamicControls();
+    syncFreezeUi();
+    render();
+  }
+
+  const feed = createFeed({
+    hz: 1,
+    onSample(now) {
+      state.time = now;
+      state.elapsed += 1;
+      if (state.beat === 'nominal' || state.beat === 'speaking') {
+        state.cpu = wander(state.cpu, rand, { min: 18, max: 38, step: 2 });
+        state.mem = wander(state.mem, rand, { min: 52, max: 66, step: 1 });
+      }
+      render();
+    },
+  });
+
+  function syncSpinLoop() {
+    cancelAnimationFrame(spinRaf);
+    spinRaf = 0;
+    if (!state.spin || feed.paused || reduced.matches || document.hidden) return;
+    let last = performance.now();
+    const tick = (now) => {
+      if (!state.spin || feed.paused || reduced.matches || document.hidden) { spinRaf = 0; return; }
+      view.lon = ((view.lon + ((now - last) / 1000) * 8 + 180) % 360) - 180;
+      last = now;
+      redrawGlobe();
+      spinRaf = requestAnimationFrame(tick); // fui-lint-ignore: R15 opt-in slow globe spin; stops on Freeze, hidden tab, or reduced-motion
+    };
+    spinRaf = requestAnimationFrame(tick); // fui-lint-ignore: R15 opt-in slow globe spin; stops on Freeze, hidden tab, or reduced-motion
+  }
+
+  function syncFreezeUi() {
+    $('live').dataset.live = String(!feed.paused);
+    $('live-word').textContent = t(feed.paused ? 'live.frozen' : 'live.on');
+    $('freeze-btn').setAttribute('aria-pressed', String(feed.paused));
+    $('freeze-btn').textContent = t(feed.paused ? 'action.resume' : 'action.freeze');
+    syncSpinLoop();
+  }
+
+  // Multi-module safe lazy start (scenarios.md §8)
+  const scenario = createScenario({
+    immediate: false,
+    beats: [
+      { id: 'nominal', cpu: 24, mem: 58 },
+      { id: 'speaking', cpu: 36, mem: 61 },
+      { id: 'degraded', cpu: 82, mem: 86 },
+      { id: 'critical', cpu: 95, mem: 92 },
+    ],
+    apply(beat) {
+      state.beat = beat.id;
+      state.cpu = beat.cpu;
+      state.mem = beat.mem;
+      render();
+    },
+  });
+
+  $('cam-matrix').addEventListener('click', (e) => { const k = e.target.closest('[data-cam]'); if (k) { state.cam = k.dataset.cam; render(); } });
+  $('cam-reset').addEventListener('click', () => { state.cam = 'main'; render(); });
+  $('city-grid').addEventListener('click', (e) => {
+    const k = e.target.closest('[data-city]');
+    if (!k) return;
+    const found = CITIES.find((c) => c.id === k.dataset.city);
+    if (!found) return;
+    state.city = found;
+    flyTo(view, { lon: found.lon, lat: found.lat }, redrawGlobe);
+    render();
+  });
+  $('geo-spin').addEventListener('click', () => { state.spin = !state.spin; $('geo-spin').setAttribute('aria-pressed', String(state.spin)); syncSpinLoop(); });
+  $('hud-tray').addEventListener('click', (e) => { const b = e.target.closest('[data-hud]'); if (b) { state.hud = state.hud === b.dataset.hud ? null : b.dataset.hud; state.expanded = false; renderHud(); } });
+  $('hud-layer').addEventListener('click', (e) => {
+    const act = e.target.closest('[data-hud-act]')?.dataset.hudAct;
+    if (act === 'side') { state.dock = state.dock === 'left' ? 'right' : 'left'; state.expanded = false; renderHud(); }
+    else if (act === 'expand') { state.expanded = !state.expanded; renderHud(); }
+    else if (act === 'close') { state.hud = null; state.expanded = false; renderHud(); }
+  });
+  document.addEventListener('click', (e) => { const o = e.target.closest('[data-open-hud]'); if (o) { state.hud = o.dataset.openHud; state.expanded = false; renderHud(); } });
+  $('wave-seg').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-wave]');
+    if (!b) return;
+    state.wave = b.dataset.wave;
+    for (const btn of $('wave-seg').children) btn.setAttribute('aria-checked', String(btn === b));
+    drawAudio();
+  });
+  $('freeze-btn').addEventListener('click', () => { feed.paused ? feed.resume() : feed.pause(); syncFreezeUi(); drawAudio(); });
+  for (const b of document.querySelectorAll('.fui-lang__opt')) b.addEventListener('click', () => setLocale(b.lang));
+  $('composer').addEventListener('submit', (e) => { e.preventDefault(); const v = $('chat-in').value.trim(); if (!v) return; state.logs.unshift({ ts: state.time.toTimeString().slice(0, 8), src: 'OP-01', msg: v, lvl: 'data' }); state.logs.length = Math.min(state.logs.length, 4); $('chat-in').value = ''; render(); });
+
+  attachGlobeControls($('geo-globe'), view, redrawGlobe);
+  document.addEventListener('visibilitychange', syncSpinLoop);
+  reduced.addEventListener('change', syncSpinLoop);
+  setLocale(locale);
+  scenario.start();
+</script>
+</body>
+</html>

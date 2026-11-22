@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: monitor-console-single-file
+expected_outcome: |
+  A single self-contained HTML file that opens from disk and shows a monitor console for the 8 printers in the skill's FUI language: one primary instrument on the only blueprint field, controls on a black ground, the selected item shown in the skill's orange at rest, with a warn state (overheating) and a crit state (failure) that can be reached on purpose, an English / Simplified Chinese switch, a pause control for the simulated feed, and a closing verification report that says what was and was not checked.

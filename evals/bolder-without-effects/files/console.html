@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>泵站 B-3 监控</title>
+<style>
+  :root { --bg: #04121a; --panel: #082430; --line: #1f4a5c; --text: #9fb9c4; --hi: #d6e6ec; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 12px; background: var(--bg); color: var(--text); font: 14px/1.4 "Noto Sans SC", sans-serif; }
+  .layout { display: grid; grid-template-columns: 260px 1fr 300px; gap: 12px; height: calc(100vh - 24px); }
+  .panel { border: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; }
+  .panel > h2 { margin: 0; padding: 8px 12px; border-bottom: 1px solid var(--line); font-size: 13px; letter-spacing: 0.1em; color: var(--hi); }
+  .panel > div { padding: 12px; }
+  .col { display: grid; gap: 12px; align-content: start; }
+  .tabs { display: flex; }
+  .tabs button { flex: 1; padding: 6px 0; border: 1px solid var(--line); background: transparent; color: var(--text); }
+  .tabs button.on { background: var(--hi); color: var(--bg); }
+  button.act { padding: 6px 14px; border: 1px solid var(--line); background: transparent; color: var(--hi); }
+  dl { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; margin: 0; }
+  dd { margin: 0; color: var(--hi); font-family: monospace; }
+  .stage { display: grid; place-items: center; height: 100%; color: var(--hi); }
+  .dot { display: inline-block; width: 8px; height: 8px; margin-right: 8px; background: var(--text); }
+  ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="col">
+    <section class="panel"><h2>视图</h2><div class="tabs"><button class="on">总览</button><button>1 号泵</button><button>2 号泵</button><button>阀组</button></div></section>
+    <section class="panel"><h2>运行模式</h2><div><dl>
+      <dt>1 号泵</dt><dd>自动</dd><dt>2 号泵</dt><dd>手动</dd><dt>进水阀</dt><dd>自动</dd><dt>备用电源</dt><dd>关</dd>
+    </dl></div></section>
+    <section class="panel"><h2>子系统</h2><div><ul>
+      <li><span class="dot"></span>PLC 通信　在线</li><li><span class="dot"></span>1 号泵　运行</li><li><span class="dot"></span>2 号泵　运行</li>
+      <li><span class="dot"></span>液位计　在线</li><li><span class="dot"></span>流量计　离线</li><li><span class="dot"></span>备用电源　待命</li>
+    </ul></div></section>
+  </div>
+  <section class="panel"><h2>泵站 B-3 · 工艺流程</h2><div class="stage" id="stage">进水池 → 1 号泵 / 2 号泵 → 阀组 → 出水管（流程示意）</div></section>
+  <div class="col">
+    <section class="panel"><h2>出水</h2><div><dl>
+      <dt>流量</dt><dd>412.6 m³/h</dd><dt>压力</dt><dd>0.42 MPa</dd><dt>进水池液位</dt><dd>3.18 m</dd>
+    </dl></div></section>
+    <section class="panel"><h2>设备</h2><div><dl>
+      <dt>1 号泵电流</dt><dd>61 %</dd><dt>2 号泵电流</dt><dd>88 %</dd><dt>轴承温度</dt><dd>54 °C</dd><dt>振动</dt><dd>2.1 mm/s</dd>
+    </dl></div></section>
+    <section class="panel"><h2>操作</h2><div><button class="act">启动备用泵</button> <button class="act">复位告警</button> <button class="act">历史记录</button></div></section>
+    <section class="panel"><h2>日志</h2><div><ul>
+      <li>14:02:07　流量计通信中断</li><li>13:58:40　2 号泵切换为手动</li><li>13:41:12　液位回到正常范围</li>
+    </ul></div></section>
+  </div>
+</div>
+</body>
+</html>

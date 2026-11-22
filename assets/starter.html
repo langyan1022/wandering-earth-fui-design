@@ -1,0 +1,405 @@
+<!doctype html>
+<!--
+  wandering-earth-fui-design — worked example of the panel-based console frame.
+  A monitor console (layout.md §6) for the "fleet bank" pattern (patterns.md §2), with a storyboard of
+  four beats (scenarios.md §2), two languages (i18n.md), and simulated data (assets/fui-sim.js).
+
+  Start from this file for a dense data tool — tables, logs, an inspector — where framed panels that scroll are
+  the right container. For a console (a system that is watched and switched), start from assets/station.html:
+  that is the reference's own composition. Keep the frame and the plumbing, replace the inventory.
+  It links fui.css and imports fui-sim.js, so serve it over HTTP, or make one file that opens from disk:
+      python3 scripts/bundle_html.py assets/starter.html -o console.html
+  Beats:  ?beat=nominal | degraded | tripped | restarting      keys  [  ]      ?paused=1
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fleet engine control — ARRAY-A</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="fui.css">
+  <style>
+    /* View-specific layout only. Everything else comes from fui.css. */
+    .fleet-stage { display: grid; align-content: center; justify-items: center; gap: var(--fui-space-6); min-height: 100%; padding: var(--fui-space-6) var(--fui-space-4); }
+    .fleet-stage .fui-bank { gap: var(--fui-space-6); }
+    .fleet-stage .fui-gauge--col { width: var(--fui-space-8); height: clamp(120px, 32vh, 280px); --segments: 25; }
+    .fleet-stage .fui-bank__col .fui-num { font-size: var(--fui-num); }
+    .fleet-stack { display: grid; gap: var(--fui-space-3); }
+    .fleet-spacer { flex: 1; }
+  </style>
+</head>
+<body class="fui">
+  <div class="fui-console">
+    <header class="fui-console__head">
+      <div class="fui-strip">
+        <h1 class="fui-console__title" data-i18n="view.title">Fleet engine control</h1>
+        <span class="fui-num">ARRAY-A · 6 <span data-i18n="unit.engines">ENGINES</span></span>
+        <span class="fleet-spacer"></span>
+        <span class="fui-badge" data-i18n="state.simulated">Simulated</span>
+        <span class="fui-live" id="live" data-live="true">
+          <i class="fui-live__dot" aria-hidden="true"></i><span class="fui-live__word" role="status">Live</span>
+          <time class="fui-num" id="clock">--:--:--Z</time>
+        </span>
+        <button class="fui-btn" type="button" id="pause" aria-pressed="false" data-i18n="action.pause">Pause feed</button>
+        <div class="fui-lang" role="group" aria-label="Language" data-i18n-label="label.language">
+          <button class="fui-lang__opt" type="button" lang="en" aria-pressed="true">EN</button>
+          <button class="fui-lang__opt" type="button" lang="zh-CN" aria-pressed="false">中文</button>
+        </div>
+      </div>
+      <div class="fui-msg fui-msg--banner" id="banner" data-state="warn" role="alert" hidden>
+        <span class="fui-badge fui-badge--solid" id="banner-badge" data-state="warn"></span>
+        <div class="fui-msg__main">
+          <p class="fui-msg__title" id="banner-title"></p>
+          <p class="fui-msg__detail" id="banner-detail"></p>
+          <div class="fui-msg__actions"><button class="fui-btn fui-btn--primary" type="button" id="ack" data-i18n="action.ack">Acknowledge</button></div>
+        </div>
+        <div class="fui-msg__side"><time class="fui-msg__time fui-num" id="banner-time"></time></div>
+      </div>
+    </header>
+
+    <nav class="fui-console__nav fui-rail" aria-label="Engines" data-i18n-label="panel.engines">
+      <section class="fui-panel" aria-labelledby="p-engines">
+        <header class="fui-panel__head">
+          <h2 class="fui-panel__title" id="p-engines" data-i18n="panel.engines">Engines</h2>
+          <span class="fui-panel__id fui-num" id="online-count">6 / 6</span>
+        </header>
+        <div class="fui-panel__body"><div class="fui-tiles" id="tiles"></div></div>
+      </section>
+    </nav>
+
+    <main class="fui-console__main">
+      <section class="fui-panel fui-bracket fui-notched fui-console__viewport" aria-labelledby="p-thrust">
+        <header class="fui-panel__head">
+          <h2 class="fui-panel__title" id="p-thrust" data-i18n="panel.thrust">Thrust by engine</h2>
+          <span class="fui-panel__id fui-num" id="fleet-mean">— %</span>
+        </header>
+        <div class="fui-panel__body fui-panel__body--flush fui-field">
+          <div class="fleet-stage">
+            <div class="fui-plate" id="plate" role="status" hidden>
+              <span class="fui-plate__kicker" id="plate-kicker"></span>
+              <strong class="fui-plate__title" id="plate-title"></strong>
+              <span class="fui-plate__meta fui-num" id="plate-meta"></span>
+            </div>
+            <div class="fui-bank" id="bank" role="group" aria-label="Thrust by engine" data-i18n-label="panel.thrust"></div>
+          </div>
+        </div>
+      </section>
+      <section class="fui-panel fui-console__dock" aria-labelledby="p-log">
+        <header class="fui-panel__head"><h2 class="fui-panel__title" id="p-log" data-i18n="panel.log">Event log</h2></header>
+        <div class="fui-panel__body fui-panel__body--flush">
+          <div class="fui-table-wrap" role="region" aria-label="Engine events, scrollable" data-i18n-label="label.log" tabindex="0" style="--fui-table-max: 168px">
+            <table class="fui-table fui-table--compact">
+              <caption class="fui-sr-only" data-i18n="log.caption">Engine events, newest first</caption>
+              <thead><tr>
+                <th scope="col" data-i18n="log.time">Time</th><th scope="col" data-i18n="log.source">Source</th>
+                <th scope="col" data-i18n="log.message">Message</th><th scope="col" data-i18n="log.level">Level</th>
+              </tr></thead>
+              <tbody id="log"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="fui-console__aside fui-rail" aria-label="Selected engine" data-i18n-label="panel.selected">
+      <section class="fui-panel" aria-labelledby="p-selected">
+        <header class="fui-panel__head">
+          <h2 class="fui-panel__title" id="p-selected" data-i18n="panel.selected">Selected engine</h2>
+          <span class="fui-panel__id fui-num" id="sel-id">ENG-01</span>
+          <span class="fui-badge" id="sel-badge" data-state="idle"></span>
+        </header>
+        <div class="fui-panel__body fleet-stack">
+          <div class="fui-readout fui-readout--hero">
+            <span class="fui-label" data-i18n="metric.thrust">Thrust</span>
+            <span class="fui-readout__value" id="sel-thrust-box" style="min-width: 6ch">
+              <span class="fui-num" id="sel-thrust" data-fui-value>—</span><span class="fui-readout__unit">%</span>
+            </span>
+            <span class="fui-readout__meta fui-num"><span data-i18n="meta.limit">LIMIT</span> 105.00</span>
+          </div>
+          <div class="fui-readout" id="sel-temp-box">
+            <span class="fui-label" data-i18n="metric.core">Core temp</span>
+            <span class="fui-readout__value" style="min-width: 7ch">
+              <span class="fui-num" id="sel-temp" data-fui-value>—</span><span class="fui-readout__unit">K</span>
+            </span>
+            <span class="fui-readout__meta fui-num"><span data-i18n="meta.warn">WARN</span> 1,500 · <span data-i18n="meta.trip">TRIP</span> 1,600</span>
+          </div>
+          <div>
+            <div class="fui-gauge-head">
+              <span class="fui-label" data-i18n="metric.fuel">Fuel reserve</span>
+              <span class="fui-num"><span id="sel-fuel">—</span> <span class="fui-unit">%</span></span>
+            </div>
+            <div class="fui-gauge" id="sel-fuel-gauge" data-state="data" style="--fui-value: 0"
+                 role="meter" aria-label="Fuel reserve" data-i18n-label="metric.fuel" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+          </div>
+        </div>
+      </section>
+      <section class="fui-panel" aria-labelledby="p-restart" id="restart-panel" hidden>
+        <header class="fui-panel__head">
+          <h2 class="fui-panel__title" id="p-restart" data-i18n="panel.restart">Restart sequence</h2>
+          <span class="fui-panel__id fui-num" id="restart-count">0 / 3</span>
+        </header>
+        <div class="fui-panel__body fleet-stack">
+          <ol class="fui-steps fui-steps--vertical" id="steps" aria-label="Restart sequence" data-i18n-label="panel.restart"></ol>
+          <button class="fui-btn fui-btn--primary" type="button" id="restart" data-i18n="action.restart">Start restart</button>
+        </div>
+      </section>
+    </aside>
+
+    <footer class="fui-strip fui-console__footer">
+      <span class="fui-label" data-i18n="footer.last">Last event</span><span class="fui-num" id="last-event">—</span>
+      <span class="fleet-spacer"></span>
+      <span class="fui-hint"><kbd class="fui-kbd">[</kbd><kbd class="fui-kbd">]</kbd> <span data-i18n="footer.beat">beat</span> <span class="fui-num" id="beat-id">nominal</span></span>
+    </footer>
+  </div>
+
+  <script type="module">
+    import { createScenario, createFeed, seeded, wander } from './fui-sim.js';
+
+    /* ── Message catalogue: every user-facing string, in both languages (i18n.md §2). ── */
+    const messages = {
+      en: {
+        'view.title': 'Fleet engine control', 'unit.engines': 'ENGINES',
+        'panel.engines': 'Engines', 'panel.thrust': 'Thrust by engine', 'panel.log': 'Event log',
+        'panel.selected': 'Selected engine', 'panel.restart': 'Restart sequence',
+        'metric.thrust': 'Thrust', 'metric.core': 'Core temp', 'metric.fuel': 'Fuel reserve',
+        'meta.limit': 'LIMIT', 'meta.warn': 'WARN', 'meta.trip': 'TRIP',
+        'log.caption': 'Engine events, newest first', 'log.time': 'Time', 'log.source': 'Source', 'log.message': 'Message', 'log.level': 'Level',
+        'action.pause': 'Pause feed', 'action.resume': 'Resume feed', 'action.ack': 'Acknowledge', 'action.restart': 'Start restart',
+        'footer.last': 'Last event', 'footer.beat': 'beat', 'label.language': 'Language', 'label.log': 'Engine events, scrollable',
+        'live.live': 'Live', 'live.paused': 'Paused',
+        'state.simulated': 'Simulated', 'state.nominal': 'Nominal', 'state.degraded': 'Degraded', 'state.tripped': 'Tripped', 'state.restart': 'Restarting',
+        'level.info': 'Info', 'level.ok': 'Ok', 'level.warn': 'Warning', 'level.crit': 'Critical',
+        'step.done': 'Done', 'step.active': 'Active', 'step.pending': 'Pending',
+        'step.1': 'Core purge', 'step.2': 'Pump spin-up', 'step.3': 'Igniter arm',
+        'alert.degraded': '{id} core temp high', 'alert.degraded.detail': 'Core at {temp} K, warning limit 1,500 K. Thrust held at {thrust} %.',
+        'alert.tripped': '{id} tripped', 'alert.tripped.detail': 'Core reached {temp} K, trip limit 1,600 K. Thrust cut to 0.00 %.',
+        'plate.kicker': 'Array A', 'plate.restart': '{id} restart {step} / 3',
+        'log.nominal': 'All engines nominal.', 'log.degraded': 'Core temperature above warning limit.',
+        'log.tripped': 'Overtemperature trip, thrust cut.', 'log.restart': 'Restart sequence started by operator.', 'log.ack': 'Alert acknowledged by operator.',
+      },
+      'zh-CN': {
+        'view.title': '发动机组控制', 'unit.engines': '台发动机',
+        'panel.engines': '发动机', 'panel.thrust': '各发动机推力', 'panel.log': '事件日志',
+        'panel.selected': '选中发动机', 'panel.restart': '重启流程',
+        'metric.thrust': '推力', 'metric.core': '堆芯温度', 'metric.fuel': '燃料储备',
+        'meta.limit': '上限', 'meta.warn': '告警', 'meta.trip': '跳闸',
+        'log.caption': '发动机事件，最新在前', 'log.time': '时间', 'log.source': '来源', 'log.message': '消息', 'log.level': '级别',
+        'action.pause': '暂停数据', 'action.resume': '恢复数据', 'action.ack': '确认', 'action.restart': '开始重启',
+        'footer.last': '最近事件', 'footer.beat': '场景', 'label.language': '语言', 'label.log': '发动机事件，可滚动',
+        'live.live': '实时', 'live.paused': '已暂停',
+        'state.simulated': '模拟', 'state.nominal': '正常', 'state.degraded': '性能下降', 'state.tripped': '已跳闸', 'state.restart': '重启中',
+        'level.info': '信息', 'level.ok': '正常', 'level.warn': '告警', 'level.crit': '严重',
+        'step.done': '已完成', 'step.active': '进行中', 'step.pending': '等待',
+        'step.1': '堆芯吹扫', 'step.2': '泵组启动', 'step.3': '点火器就绪',
+        'alert.degraded': '{id} 堆芯温度偏高', 'alert.degraded.detail': '堆芯 {temp} K，告警限值 1,500 K。推力保持在 {thrust} %。',
+        'alert.tripped': '{id} 已跳闸', 'alert.tripped.detail': '堆芯达到 {temp} K，跳闸限值 1,600 K。推力已降至 0.00 %。',
+        'plate.kicker': 'A 阵列', 'plate.restart': '{id} 重启 {step} / 3',
+        'log.nominal': '全部发动机正常。', 'log.degraded': '堆芯温度超过告警限值。',
+        'log.tripped': '超温跳闸，推力已切断。', 'log.restart': '操作员启动重启流程。', 'log.ack': '操作员已确认告警。',
+      },
+    };
+    let locale = 'en';
+    const t = (key, params = {}) =>
+      (messages[locale][key] ?? messages.en[key] ?? key).replace(/\{(\w+)\}/g, (_, name) => params[name] ?? '');
+
+    /* ── Model: six engines. State is derived from data, never set for looks. ── */
+    const LIMIT = { warn: 1500, trip: 1600 };
+    const random = seeded(7);
+    const engines = Array.from({ length: 6 }, (_, i) => ({
+      id: `ENG-0${i + 1}`, index: `0${i + 1}`,
+      thrust: 96.2 + i * 0.45, temp: 1378 + i * 11, fuel: 0.82 - i * 0.04,
+      forcedTemp: null, restartStep: 0,
+    }));
+    const stateOf = (e) => (e.restartStep ? 'restart' : e.temp >= LIMIT.trip ? 'tripped' : e.temp >= LIMIT.warn ? 'degraded' : 'nominal');
+    const INK = { nominal: 'idle', degraded: 'warn', tripped: 'crit', restart: 'info' };
+    const LEVEL = { nominal: 'ok', degraded: 'warn', tripped: 'crit', restart: 'info' };
+    const fixed = (n, d) => n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+    const clock = (time) => `${time.toISOString().slice(11, 19)}Z`;
+
+    let selected = 0;
+    let acknowledged = false;
+    let lastTime = new Date();
+    const events = [];
+
+    function step() {
+      for (const e of engines) {
+        e.temp = e.forcedTemp ?? wander(e.temp, random, { min: 1340, max: 1460, step: 4 });
+        const s = stateOf(e);
+        e.thrust = s === 'tripped' ? 0 : s === 'restart' ? 18 * e.restartStep : s === 'degraded' ? 91.2
+          : wander(Math.max(e.thrust, 95), random, { min: 95, max: 99.6, step: 0.3 });
+        e.fuel = Math.max(0, e.fuel - 0.0004);
+      }
+    }
+    function record(source, key, level) {
+      events.unshift({ time: lastTime, source, key, level });
+      events.length = Math.min(events.length, 40);
+    }
+
+    /* ── DOM built once; later renders only change values, states, and words. ── */
+    const $ = (id) => document.getElementById(id);
+    $('bank').innerHTML = engines.map((e) => `
+      <div class="fui-bank__col">
+        <div class="fui-gauge fui-gauge--col" role="meter" aria-valuemin="0" aria-valuemax="100"></div>
+        <span class="fui-num">${e.index}</span>
+      </div>`).join('');
+    $('tiles').innerHTML = engines.map((e, i) => `
+      <button class="fui-readout fui-readout--tile" type="button" data-engine="${i}" aria-pressed="false">
+        <span class="fui-label">${e.id}</span>
+        <span class="fui-readout__value"><span class="fui-num" data-fui-value></span><span class="fui-readout__unit">%</span></span>
+        <span class="fui-readout__meta"></span>
+      </button>`).join('');
+    $('steps').innerHTML = [1, 2, 3].map((n) => `
+      <li class="fui-step">
+        <span class="fui-step__idx fui-num">0${n}</span>
+        <span class="fui-step__body"><span class="fui-step__name"></span><span class="fui-label fui-step__state"></span></span>
+      </li>`).join('');
+    const columns = [...$('bank').querySelectorAll('.fui-gauge')];
+    const tiles = [...$('tiles').children];
+    const stepItems = [...$('steps').children];
+
+    const setState = (el, ink) => (ink && ink !== 'idle' ? el.setAttribute('data-state', ink) : el.removeAttribute('data-state'));
+    const setGauge = (el, unit) => {                       // gauges move in whole segments (gauge.md)
+      const segments = Number(getComputedStyle(el).getPropertyValue('--segments')) || 20;
+      const previous = Number(el.style.getPropertyValue('--fui-value')) || 0;
+      el.style.setProperty('--fui-steps', String(Math.max(1, Math.round(Math.abs(unit - previous) * segments))));
+      el.style.setProperty('--fui-value', unit.toFixed(3));
+      el.setAttribute('aria-valuenow', String(Math.round(unit * 100)));
+      requestAnimationFrame(() => el.setAttribute('data-ready', ''));   // no sweep from zero on first paint
+    };
+
+    function render() {
+      const worst = engines.find((e) => stateOf(e) === 'tripped') ?? engines.find((e) => stateOf(e) === 'degraded');
+      const restarting = engines.find((e) => e.restartStep);
+      const online = engines.filter((e) => stateOf(e) !== 'tripped').length;
+      const mean = engines.reduce((sum, e) => sum + e.thrust, 0) / engines.length;
+
+      $('clock').textContent = clock(lastTime);
+      $('clock').dateTime = lastTime.toISOString();
+      $('online-count').textContent = `${online} / ${engines.length}`;
+      $('fleet-mean').textContent = `${fixed(mean, 2)} %`;
+
+      engines.forEach((e, i) => {
+        const s = stateOf(e);
+        setGauge(columns[i], e.thrust / 100);
+        setState(columns[i], s === 'nominal' ? null : INK[s]);
+        columns[i].setAttribute('aria-label', `${e.id} ${t('metric.thrust')}, ${t(`state.${s}`)}`);
+        const tile = tiles[i];
+        setState(tile, s === 'nominal' ? null : INK[s]);
+        tile.setAttribute('aria-pressed', String(i === selected));
+        tile.querySelector('[data-fui-value]').textContent = fixed(e.thrust, 2);
+        tile.querySelector('.fui-readout__meta').textContent = t(`state.${s}`);
+      });
+
+      const e = engines[selected];
+      const s = stateOf(e);
+      $('sel-id').textContent = e.id;
+      $('sel-badge').textContent = t(`state.${s}`);
+      $('sel-badge').dataset.state = INK[s];
+      $('sel-thrust').textContent = fixed(e.thrust, 2);
+      setState($('sel-thrust-box'), s === 'tripped' ? 'crit' : null);
+      $('sel-temp').textContent = fixed(e.temp, 0);
+      setState($('sel-temp-box'), s === 'tripped' ? 'crit' : s === 'degraded' ? 'warn' : null);
+      $('sel-fuel').textContent = fixed(e.fuel * 100, 2);
+      setGauge($('sel-fuel-gauge'), e.fuel);
+
+      /* One exception, one place: the banner (takeover level 2, scenarios.md §6). */
+      const banner = $('banner');
+      banner.hidden = !worst || acknowledged;
+      if (worst && !acknowledged) {
+        const ws = stateOf(worst);
+        banner.dataset.state = INK[ws];
+        $('banner-badge').dataset.state = INK[ws];
+        $('banner-badge').textContent = t(`level.${LEVEL[ws]}`);
+        $('banner-title').textContent = t(`alert.${ws}`, { id: worst.id });
+        $('banner-detail').textContent = t(`alert.${ws}.detail`, { temp: fixed(worst.temp, 0), thrust: fixed(worst.thrust, 2) });
+        $('banner-time').textContent = clock(worst.since ?? lastTime);
+        $('ack').hidden = ws !== 'tripped';
+      }
+
+      /* A running procedure is the subject of the view: headline plate over the stage (level 3). */
+      $('plate').hidden = !restarting;
+      if (restarting) {
+        $('plate-kicker').textContent = t('plate.kicker');
+        $('plate-title').textContent = t('plate.restart', { id: restarting.id, step: restarting.restartStep });
+        $('plate-meta').textContent = `${t(`step.${restarting.restartStep}`).toUpperCase()} · ${fixed(restarting.thrust, 2)} %`;
+      }
+
+      const subject = restarting ?? engines.find((x) => stateOf(x) === 'tripped');
+      $('restart-panel').hidden = !subject;
+      if (subject) {
+        $('restart-count').textContent = `${Math.max(0, subject.restartStep - 1)} / 3`;
+        $('restart').hidden = Boolean(subject.restartStep);
+        stepItems.forEach((li, n) => {
+          const phase = !subject.restartStep ? 'pending' : n + 1 < subject.restartStep ? 'done' : n + 1 === subject.restartStep ? 'active' : 'pending';
+          li.dataset.state = { done: 'ok', active: 'info', pending: 'idle' }[phase];
+          phase === 'active' ? li.setAttribute('aria-current', 'step') : li.removeAttribute('aria-current');
+          li.querySelector('.fui-step__name').textContent = t(`step.${n + 1}`);
+          li.querySelector('.fui-step__state').textContent = t(`step.${phase}`);
+        });
+      }
+
+      $('log').innerHTML = events.map((ev) => `
+        <tr><td class="fui-num">${clock(ev.time)}</td><td class="fui-num">${ev.source}</td>
+        <td class="fui-table__text">${t(ev.key)}</td>
+        <td><span class="fui-badge${ev.level === 'crit' ? ' fui-badge--solid' : ''}" data-state="${ev.level}">${t(`level.${ev.level}`)}</span></td></tr>`).join('');
+      $('last-event').textContent = events[0] ? `${clock(events[0].time)} ${events[0].source}` : '—';
+    }
+
+    function setLocale(next) {
+      locale = next in messages ? next : 'en';
+      document.documentElement.lang = locale;
+      for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
+      for (const el of document.querySelectorAll('[data-i18n-label]')) el.setAttribute('aria-label', t(el.dataset.i18nLabel));
+      for (const el of document.querySelectorAll('.fui-lang__opt')) el.setAttribute('aria-pressed', String(el.lang === locale));
+      syncFeedWords();
+      render();
+    }
+
+    /* ── Feed, pause control, heartbeat. ── */
+    const feed = createFeed({ hz: 1, onSample: (time) => { lastTime = time; step(); render(); } });
+    function syncFeedWords() {
+      $('live').dataset.live = String(!feed.paused);
+      $('live').querySelector('.fui-live__word').textContent = t(feed.paused ? 'live.paused' : 'live.live');
+      $('pause').setAttribute('aria-pressed', String(feed.paused));
+      $('pause').textContent = t(feed.paused ? 'action.resume' : 'action.pause');
+    }
+    $('pause').addEventListener('click', () => { feed.paused ? feed.resume() : feed.pause(); syncFeedWords(); });
+
+    /* ── Storyboard beats (scenarios.md §2): reached by URL, keys, or the operator. Never by timer. ── */
+    const scenario = createScenario({
+      beats: [
+        { id: 'nominal',    log: ['ARRAY-A', 'log.nominal', 'ok'] },
+        { id: 'degraded',   temp: 1512, log: ['ENG-03', 'log.degraded', 'warn'] },
+        { id: 'tripped',    temp: 1604, log: ['ENG-03', 'log.tripped', 'crit'] },
+        { id: 'restarting', temp: 1420, restartStep: 2, log: ['ENG-03', 'log.restart', 'info'] },
+      ],
+      apply(beat) {
+        const subject = engines[2];
+        subject.forcedTemp = beat.temp ?? null;
+        subject.restartStep = beat.restartStep ?? 0;
+        subject.since = lastTime = new Date();
+        if (beat.temp) selected = 2;
+        acknowledged = false;
+        step();
+        record(...beat.log);
+        $('beat-id').textContent = beat.id;
+        render();
+      },
+    });
+
+    $('tiles').addEventListener('click', (event) => {
+      const tile = event.target.closest('[data-engine]');
+      if (tile) { selected = Number(tile.dataset.engine); render(); }
+    });
+    $('ack').addEventListener('click', () => { acknowledged = true; record('ENG-03', 'log.ack', 'info'); render(); });
+    $('restart').addEventListener('click', () => scenario.go('restarting'));
+    for (const option of document.querySelectorAll('.fui-lang__opt')) option.addEventListener('click', () => setLocale(option.lang));
+
+    const wanted = new URLSearchParams(location.search).get('lang');
+    setLocale(wanted ?? ((navigator.language || 'en').toLowerCase().startsWith('zh') ? 'zh-CN' : 'en'));
+  </script>
+</body>
+</html>

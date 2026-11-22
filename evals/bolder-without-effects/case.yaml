@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: bolder-without-effects
+expected_outcome: |
+  A reworked console that answers "bolder, more colour, fewer boxes" by moving toward the reference rather than by invention: the framed panels with title bars are replaced by the station composition (controls on a black ground round one bounded blueprint stage, groups without frames), the view switch becomes keys with the one in use in the skill's orange, the modes become mode tiles with the position in force in orange, the subsystems become chip rows with state words, the readings become meter rows or a tile, and names are white. Every value and control of the original page is still present. Nothing is added that the reference does not have: no glow, scan lines, rotating rings, slanted colour blocks, oversized hollow lettering, extra palettes, themes, or colour schemes, and no violet or purple.
+context:
+  scaffold_script: place-files.sh

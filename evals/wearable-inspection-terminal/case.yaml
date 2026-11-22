@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: wearable-inspection-terminal
+expected_outcome: |
+  A web prototype for a 480 × 272 forearm terminal built on the skill's wearable device profile: a destination rail of at most five or six sections, one subject per screen with one hero value and at most four secondaries, touch targets of at least 44px, Chinese-first text with untranslated equipment IDs, and an over-temperature state that takes over the stage with one plate and one report action.

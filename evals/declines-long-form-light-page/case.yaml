@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: declines-long-form-light-page
+expected_outcome: |
+  The response does not restyle the documentation site wholesale. It explains that the style is for data-dense control surfaces and is ruled out for long-form reading and light-theme products, keeps the docs readable, and offers a fitting alternative such as one embedded FUI panel (for example a live status or API-health panel) or a showcase landing section, leaving article pages in the site's own design.

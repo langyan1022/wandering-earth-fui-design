@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wandering Earth FUI Design"
+  short_description: "Film-grade FUI design system for dashboards and consoles"
+  default_prompt: "Use $wandering-earth-fui-design to build this interface as a Wandering Earth style FUI console."

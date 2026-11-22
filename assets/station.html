@@ -1,0 +1,553 @@
+<!doctype html>
+<!--
+  wandering-earth-fui-design — the station console: start here for a console.
+  The reference's own composition (references/station.md): a black ground, one blueprint window, white keys,
+  orange on what is selected, mode tiles, chip rows, tag strips, meter rows, a title card, a headline plate.
+  The subject is a ground-station antenna drawn as a selectable schematic; the data is simulated (assets/fui-sim.js).
+
+  Use it as the starting point: keep the frame and the plumbing, replace the inventory with the product's.
+  It links fui.css and imports fui-sim.js, so serve it over HTTP, or make one file that opens from disk:
+      python3 scripts/bundle_html.py assets/station.html -o console.html
+  Beats:  ?beat=standby | acquiring | tracking | degraded | lost      keys  [  ]      ?paused=1      ?lang=en | zh-CN
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ground station R-07 — ARGO-7 relay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="fui.css">
+  <style>
+    /* View-specific layout only. Everything else comes from fui.css. */
+    .gs-spacer { flex: 1; }
+    .gs-subject .gs-ground, .gs-subject .gs-strut { stroke: var(--fui-text); }
+    .gs-subject .gs-track { stroke: var(--fui-text-hi); stroke-dasharray: 2 6; }
+    .gs-subject .gs-bore { stroke: var(--fui-text-hi); stroke-dasharray: 2 5; }
+    .gs-subject .gs-link { stroke: var(--fui-text); stroke-dasharray: 6 4; }
+    .gs-subject .gs-craft { fill: var(--fui-text-hi); stroke: none; }
+    .gs-subject [data-in-pass="false"] { visibility: hidden; }
+    @media (max-width: 720px) { .gs-subject text { display: none; } }      /* scaled down they are unreadable; the keys carry the same codes */
+    .gs-tile dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--fui-space-2); margin: var(--fui-space-3) 0 0; }
+    .gs-tile dl div { display: grid; gap: var(--fui-space-1); min-width: 0; }
+    .gs-tile dd { margin: 0; font-size: var(--fui-text-base); white-space: nowrap; }
+    .gs-channel { display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: stretch; gap: var(--fui-space-2); }
+    .gs-channel + .gs-channel { margin-top: var(--fui-space-1); }
+    .gs-channel__unit { display: grid; align-content: center; gap: var(--fui-space-1); padding: 5px 7px; border: 1px solid var(--fui-line-3); background: var(--fui-surface-3); }
+    .gs-channel__unit b { font: 700 var(--fui-text-label) / 1 var(--fui-font-sans); letter-spacing: 0.1em; text-transform: uppercase; }
+    .gs-channel__unit span { font-size: var(--fui-num-sm); color: var(--fui-text); }
+    .gs-channel .fui-spark { width: 100%; height: 40px; border-bottom: 1px solid var(--fui-line-2); }
+    .gs-log { display: grid; gap: var(--fui-space-1); }
+    .gs-log li { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--fui-space-2); min-height: 22px; font-size: var(--fui-text-sm); color: var(--fui-text-dim); }
+    .gs-log li:first-child { color: var(--fui-text-hi); }
+    .gs-log li > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  </style>
+</head>
+<body class="fui">
+<main class="fui-station">
+  <header class="fui-station__top">
+    <h1 class="fui-station__unit"><b>R-07</b><span data-i18n="view.sub">Ground station console</span></h1>
+    <span class="gs-spacer"></span>
+    <span class="fui-badge" data-i18n="state.simulated">Simulated</span>
+    <span class="fui-live" id="live" data-live="true">
+      <i class="fui-live__dot" aria-hidden="true"></i><span class="fui-live__word" role="status">Live</span>
+    </span>
+    <time class="fui-station__clock fui-num" id="clock">--:--:--<span>UTC</span></time>
+    <div class="fui-lang" role="group" aria-label="Language" data-i18n-label="label.language">
+      <button class="fui-lang__opt" type="button" lang="en" aria-pressed="true">EN</button>
+      <button class="fui-lang__opt" type="button" lang="zh-CN" aria-pressed="false">中文</button>
+    </div>
+  </header>
+
+  <nav class="fui-station__left" aria-label="Console controls" data-i18n-label="label.controls">
+    <div class="fui-titlecard fui-reveal" style="--fui-i: 0">
+      <span class="fui-titlecard__issuer" data-i18n="card.issuer">Orbital relay authority</span>
+      <strong class="fui-titlecard__title" data-i18n="card.title">Ground station R-07</strong>
+      <span class="fui-titlecard__sub fui-num">ARGO-7 · PASS 0412</span>
+    </div>
+
+    <section class="fui-group fui-reveal" style="--fui-i: 1" aria-labelledby="g-parts">
+      <header class="fui-cap"><h2 id="g-parts" data-i18n="cap.parts">Parts</h2><output class="fui-num" id="part-index">01 / 06</output></header>
+      <div class="fui-keys fui-keys--grid" id="part-keys" role="group" aria-labelledby="g-parts" style="--fui-cols: 3"></div>
+    </section>
+
+    <section class="fui-group fui-reveal" style="--fui-i: 2" aria-labelledby="g-modes">
+      <header class="fui-cap"><h2 id="g-modes" data-i18n="cap.modes">Modes</h2><output class="fui-num" id="mode-count">0 / 4</output></header>
+      <div class="fui-modes" id="modes"></div>
+    </section>
+
+    <section class="fui-group fui-reveal" style="--fui-i: 3" aria-labelledby="g-subs">
+      <header class="fui-cap"><h2 id="g-subs" data-i18n="cap.subs">Subsystems</h2><output class="fui-num" id="sub-count">0 / 7</output></header>
+      <ul class="fui-chiprows" id="subs" aria-labelledby="g-subs"></ul>
+    </section>
+  </nav>
+
+  <section class="fui-stage" aria-label="Antenna R-07" data-i18n-label="label.stage">
+    <ul class="fui-tagstrip fui-reveal" id="strip-top" style="--fui-i: 4" aria-label="Subsystems" data-i18n-label="cap.subs"></ul>
+    <div class="fui-stage__window fui-field" id="window">
+      <svg class="fui-svg fui-stage__subject gs-subject" id="subject" viewBox="60 20 860 490" role="group" aria-label="Antenna schematic" data-i18n-label="label.schematic">
+        <path class="gs-ground" d="M300 470H820M300 470v8M430 470v8M560 470v8M690 470v8M820 470v8"/>
+        <path class="gs-track" d="M80 220Q480 -40 900 180"/>
+        <g id="craft" data-in-pass="false"><path class="gs-bore" id="bore" d="M514 142L480 60"/><rect class="gs-craft" id="craft-mark" x="474" y="54" width="12" height="12"/></g>
+        <path class="gs-strut" d="M360 150L506 140M560 290L522 152M420 277L460 296"/>
+        <path class="gs-link" d="M390 308V452H690"/>
+        <g class="fui-part" data-part="dish" role="button" tabindex="0"><path d="M360 150Q380 334 560 290M360 150L560 290"/><text x="318" y="212">P-01</text></g>
+        <g class="fui-part" data-part="feed" role="button" tabindex="0"><rect x="502" y="130" width="24" height="24"/><text x="534" y="146">P-02</text></g>
+        <g class="fui-part" data-part="mount" role="button" tabindex="0"><path d="M400 470L430 330H490L520 470Z"/><text x="528" y="420">P-03</text></g>
+        <g class="fui-part" data-part="drive" role="button" tabindex="0"><rect x="425" y="296" width="70" height="34"/><text x="503" y="317">P-04</text></g>
+        <g class="fui-part" data-part="lna" role="button" tabindex="0"><rect x="372" y="286" width="36" height="22"/><text x="330" y="301">P-05</text></g>
+        <g class="fui-part" data-part="modem" role="button" tabindex="0"><rect x="690" y="392" width="92" height="78"/><text x="790" y="436">P-06</text></g>
+      </svg>
+      <ol class="fui-cols" id="cols" aria-hidden="true"></ol>
+      <div class="fui-plate fui-stage__plate" id="plate" role="status">
+        <span class="fui-plate__kicker">R-07 · ARGO-7</span>
+        <strong class="fui-plate__state" id="plate-state">Standby</strong>
+        <span class="fui-plate__meta fui-num" id="plate-meta" hidden></span>
+        <span class="fui-datatag" id="plate-tag" hidden><span data-i18n="plate.connecting">Data connecting</span><span class="fui-progress" aria-busy="true"></span></span>
+      </div>
+      <i class="fui-axis fui-axis--x" id="axis-x"></i><i class="fui-axis fui-axis--y" id="axis-y"></i>
+      <div class="fui-figure" id="figure" role="group" aria-label="Selected part readings" data-i18n-label="label.figure"></div>
+    </div>
+    <ul class="fui-tagstrip fui-reveal" id="strip-bottom" style="--fui-i: 5" aria-label="Session" data-i18n-label="label.session"></ul>
+  </section>
+
+  <aside class="fui-station__right" aria-label="Readings" data-i18n-label="label.readings">
+    <section class="fui-tile gs-tile fui-reveal" style="--fui-i: 1" aria-labelledby="t-signal">
+      <h2 class="fui-sr-only" id="t-signal" data-i18n="tile.signal">Downlink signal</h2>
+      <p class="fui-tile__hero"><b class="fui-num" id="sig">—</b><span class="fui-unit">dBm</span><strong id="sig-word">No carrier</strong></p>
+      <dl>
+        <div><dt class="fui-label">Eb/N0</dt><dd class="fui-num" id="ebn0">—</dd></div>
+        <div><dt class="fui-label" data-i18n="tile.doppler">Doppler</dt><dd class="fui-num" id="doppler">—</dd></div>
+        <div><dt class="fui-label" data-i18n="tile.rate">Rate</dt><dd class="fui-num" id="rate">—</dd></div>
+      </dl>
+    </section>
+
+    <section class="fui-group fui-reveal" style="--fui-i: 2" aria-labelledby="g-site">
+      <header class="fui-cap"><h2 id="g-site" data-i18n="cap.site">This site</h2><button class="fui-key fui-key--sm" type="button" id="pause" aria-pressed="false" data-i18n="action.pause">Pause feed</button></header>
+      <dl class="fui-meters" id="meters"></dl>
+    </section>
+
+    <section class="fui-group fui-reveal" style="--fui-i: 3" aria-labelledby="g-ch">
+      <header class="fui-cap"><h2 id="g-ch" data-i18n="cap.channels">Channels</h2></header>
+      <figure class="gs-channel" aria-label="Downlink" data-i18n-label="ch.down">
+        <figcaption class="gs-channel__unit"><b data-i18n="ch.down">Downlink</b><span class="fui-num" id="ch-down">—</span></figcaption>
+        <svg class="fui-spark" viewBox="0 0 96 24" preserveAspectRatio="none" aria-hidden="true"><polyline id="trace-down" points=""/></svg>
+      </figure>
+      <figure class="gs-channel" aria-label="Uplink" data-i18n-label="ch.up">
+        <figcaption class="gs-channel__unit"><b data-i18n="ch.up">Uplink</b><span class="fui-num" id="ch-up">—</span></figcaption>
+        <svg class="fui-spark" viewBox="0 0 96 24" preserveAspectRatio="none" aria-hidden="true"><polyline id="trace-up" points=""/></svg>
+      </figure>
+    </section>
+
+    <section class="fui-group fui-reveal" style="--fui-i: 4" aria-labelledby="g-log">
+      <header class="fui-cap"><h2 id="g-log" data-i18n="cap.log">Log</h2></header>
+      <ol class="gs-log" id="log" aria-labelledby="g-log"></ol>
+    </section>
+  </aside>
+
+  <footer class="fui-station__dock">
+    <div class="fui-keys fui-reveal" style="--fui-i: 5" role="group" aria-label="Storyboard" data-i18n-label="label.story">
+      <button class="fui-key" type="button" id="prev" aria-keyshortcuts="["><span class="fui-key__name" data-i18n="action.prev">Previous beat</span><span class="fui-key__code">Key [</span></button>
+      <button class="fui-key" type="button" id="next" aria-keyshortcuts="]"><span class="fui-key__name" data-i18n="action.next">Next beat</span><span class="fui-key__code">Key ]</span></button>
+    </div>
+    <p class="fui-station__status" role="status"><span class="fui-chip" data-i18n="chip.status">Status</span><span id="status">—</span></p>
+    <div class="fui-keys" role="group" aria-label="Main actions" data-i18n-label="label.main">
+      <button class="fui-key fui-key--lg fui-key--icon" type="button" id="track" aria-pressed="false">
+        <svg class="fui-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 14l5-5M4 8a4 4 0 0 0 4 4M4 4a8 8 0 0 0 8 8M9 7l4-4"/></svg>
+        <span class="fui-key__name" id="track-name">Acquire</span><span class="fui-key__code" id="track-code">Tracking</span>
+      </button>
+      <button class="fui-key fui-key--lg" type="button" id="stop" disabled><span class="fui-key__name" data-i18n="action.stop">Stop</span><span class="fui-key__code" data-i18n="action.stop.code">Park dish</span></button>
+    </div>
+  </footer>
+</main>
+
+<script type="module">
+  import { createScenario, createFeed, seeded, wander } from './fui-sim.js';
+
+  /* ── Message catalogue: every user-facing string, in both languages (i18n.md §2). ── */
+  const messages = {
+    en: {
+      'view.sub': 'Ground station console', 'state.simulated': 'Simulated', 'live.live': 'Live', 'live.paused': 'Paused',
+      'label.language': 'Language', 'label.controls': 'Console controls', 'label.stage': 'Antenna R-07', 'label.schematic': 'Antenna schematic',
+      'label.figure': 'Selected part readings', 'label.session': 'Session', 'label.readings': 'Readings', 'label.story': 'Storyboard', 'label.main': 'Main actions',
+      'card.issuer': 'Orbital relay authority', 'card.title': 'Ground station R-07',
+      'cap.parts': 'Parts', 'cap.modes': 'Modes', 'cap.subs': 'Subsystems', 'cap.site': 'This site', 'cap.channels': 'Channels', 'cap.log': 'Log',
+      'part.dish': 'Dish', 'part.feed': 'Feed', 'part.mount': 'Mount', 'part.drive': 'Drive', 'part.lna': 'LNA', 'part.modem': 'Modem',
+      'mode.track': 'Tracking', 'mode.amp': 'Amplifier', 'mode.uplink': 'Uplink', 'mode.record': 'Record',
+      'opt.auto': 'Auto', 'opt.manual': 'Manual', 'opt.off': 'Off', 'opt.on': 'On', 'mode.since': 'Manual since', 'mode.locked': 'Locked · no link',
+      'sub.link': 'Link', 'sub.drive': 'Drive', 'sub.feed': 'Feed', 'sub.lna': 'LNA', 'sub.modem': 'Modem', 'sub.clock': 'Clock', 'sub.store': 'Store',
+      'chip.null': 'Null', 'chip.active': 'Active', 'chip.sync': 'Sync', 'chip.pass': 'Pass', 'chip.check': 'Check', 'chip.lost': 'Lost', 'chip.status': 'Status',
+      'read.nocarrier': 'no carrier', 'read.searching': 'searching', 'read.parked': 'parked', 'read.slewing': 'slewing', 'read.following': 'following',
+      'read.torque': 'torque high', 'read.idle': 'idle', 'read.noframes': 'no frames', 'read.gps': 'GPS locked', 'read.free': 'free',
+      'plate.standby': 'Standby', 'plate.acquiring': 'Acquiring', 'plate.tracking': 'Tracking', 'plate.lost': 'Link lost', 'plate.connecting': 'Data connecting',
+      'plate.meta.degraded': 'DRIVE CHECK · TORQUE', 'plate.meta.lost': 'NO CARRIER SINCE',
+      'tile.signal': 'Downlink signal', 'tile.doppler': 'Doppler', 'tile.rate': 'Rate', 'word.nocarrier': 'No carrier', 'word.searching': 'Searching', 'word.locked': 'Locked',
+      'meter.signal': 'Signal', 'meter.buffer': 'Buffer', 'meter.power': 'Power', 'meter.torque': 'Torque', 'meter.store': 'Store', 'note.high': 'High · limit 80 %',
+      'ch.down': 'Downlink', 'ch.up': 'Uplink',
+      'fig.az': 'Azimuth °', 'fig.el': 'Elevation °', 'fig.temp': 'Feed temp °C', 'fig.vswr': 'VSWR', 'fig.wind': 'Wind m/s', 'fig.tilt': 'Tilt °',
+      'fig.slew': 'Slew °/s', 'fig.torque': 'Torque %', 'fig.noise': 'Noise K', 'fig.gain': 'Gain dB', 'fig.rate': 'Rate Mbps', 'fig.frames': 'Frames',
+      'action.pause': 'Pause feed', 'action.resume': 'Resume feed', 'action.prev': 'Previous beat', 'action.next': 'Next beat',
+      'action.acquire': 'Acquire', 'action.acquire.code': 'Start tracking', 'action.acquiring': 'Acquiring', 'action.acquiring.code': 'Searching',
+      'action.tracking': 'Tracking', 'action.tracking.code': 'Link is up', 'action.reacquire': 'Reacquire', 'action.reacquire.code': 'Carrier lost',
+      'action.stop': 'Stop', 'action.stop.code': 'Park dish',
+      'status.standby': 'Dish parked. No pass in progress.', 'status.acquiring': 'Searching for the ARGO-7 carrier.', 'status.tracking': 'Following ARGO-7. Frames arriving.',
+      'status.degraded': 'Following ARGO-7. Drive torque above its limit.', 'status.lost': 'Carrier lost. Holding the last pointing.',
+      'log.standby': 'Dish parked', 'log.acquiring': 'Acquisition started', 'log.tracking': 'Carrier locked', 'log.degraded': 'Drive torque above limit',
+      'log.lost': 'Carrier lost', 'log.manual': 'Tracking set to manual', 'log.auto': 'Tracking set to auto', 'log.select': 'Selected',
+    },
+    'zh-CN': {
+      'view.sub': '地面站控制台', 'state.simulated': '模拟数据', 'live.live': '实时', 'live.paused': '已暂停',
+      'label.language': '语言', 'label.controls': '控制台操作', 'label.stage': '天线 R-07', 'label.schematic': '天线结构图',
+      'label.figure': '所选部件读数', 'label.session': '会话', 'label.readings': '读数', 'label.story': '场景', 'label.main': '主要操作',
+      'card.issuer': '轨道中继管理局', 'card.title': '地面站 R-07',
+      'cap.parts': '部件', 'cap.modes': '模式', 'cap.subs': '子系统', 'cap.site': '本站', 'cap.channels': '通道', 'cap.log': '日志',
+      'part.dish': '天线面', 'part.feed': '馈源', 'part.mount': '基座', 'part.drive': '驱动', 'part.lna': '低噪放', 'part.modem': '调制解调',
+      'mode.track': '跟踪', 'mode.amp': '功放', 'mode.uplink': '上行', 'mode.record': '记录',
+      'opt.auto': '自动', 'opt.manual': '手动', 'opt.off': '关', 'opt.on': '开', 'mode.since': '手动起始', 'mode.locked': '锁定 · 无链路',
+      'sub.link': '链路', 'sub.drive': '驱动', 'sub.feed': '馈源', 'sub.lna': '低噪放', 'sub.modem': '调制解调', 'sub.clock': '时钟', 'sub.store': '存储',
+      'chip.null': '空闲', 'chip.active': '运行', 'chip.sync': '同步', 'chip.pass': '通过', 'chip.check': '检查', 'chip.lost': '丢失', 'chip.status': '状态',
+      'read.nocarrier': '无载波', 'read.searching': '搜索中', 'read.parked': '已停靠', 'read.slewing': '转动中', 'read.following': '跟随中',
+      'read.torque': '扭矩偏高', 'read.idle': '空闲', 'read.noframes': '无数据帧', 'read.gps': 'GPS 已锁定', 'read.free': '可用',
+      'plate.standby': '待机', 'plate.acquiring': '正在捕获', 'plate.tracking': '正在跟踪', 'plate.lost': '链路中断', 'plate.connecting': '数据连接中',
+      'plate.meta.degraded': '驱动检查 · 扭矩', 'plate.meta.lost': '无载波起始',
+      'tile.signal': '下行信号', 'tile.doppler': '多普勒', 'tile.rate': '速率', 'word.nocarrier': '无载波', 'word.searching': '搜索中', 'word.locked': '已锁定',
+      'meter.signal': '信号', 'meter.buffer': '缓冲', 'meter.power': '功率', 'meter.torque': '扭矩', 'meter.store': '存储', 'note.high': '偏高 · 上限 80 %',
+      'ch.down': '下行', 'ch.up': '上行',
+      'fig.az': '方位 °', 'fig.el': '俯仰 °', 'fig.temp': '馈源温度 °C', 'fig.vswr': '驻波比', 'fig.wind': '风速 m/s', 'fig.tilt': '倾斜 °',
+      'fig.slew': '转速 °/s', 'fig.torque': '扭矩 %', 'fig.noise': '噪声 K', 'fig.gain': '增益 dB', 'fig.rate': '速率 Mbps', 'fig.frames': '帧数',
+      'action.pause': '暂停数据', 'action.resume': '恢复数据', 'action.prev': '上一场景', 'action.next': '下一场景',
+      'action.acquire': '开始捕获', 'action.acquire.code': 'ACQUIRE', 'action.acquiring': '正在捕获', 'action.acquiring.code': 'SEARCHING',
+      'action.tracking': '正在跟踪', 'action.tracking.code': 'TRACKING', 'action.reacquire': '重新捕获', 'action.reacquire.code': 'REACQUIRE',
+      'action.stop': '停止', 'action.stop.code': 'PARK DISH',
+      'status.standby': '天线已停靠，当前没有过境。', 'status.acquiring': '正在搜索 ARGO-7 载波。', 'status.tracking': '正在跟随 ARGO-7，数据帧到达中。',
+      'status.degraded': '正在跟随 ARGO-7，驱动扭矩超过上限。', 'status.lost': '载波丢失，保持最后指向。',
+      'log.standby': '天线已停靠', 'log.acquiring': '开始捕获', 'log.tracking': '载波已锁定', 'log.degraded': '驱动扭矩超过上限',
+      'log.lost': '载波丢失', 'log.manual': '跟踪改为手动', 'log.auto': '跟踪改为自动', 'log.select': '已选择',
+    },
+  };
+  let locale = 'en';
+  const t = (key) => messages[locale][key] ?? messages.en[key] ?? key;
+  const $ = (id) => document.getElementById(id);
+  const fixed = (value, digits = 1) => value.toFixed(digits);
+  const clock = (time) => time.toISOString().slice(11, 19);
+  const zh = () => locale === 'zh-CN';
+
+  /* ── Inventory (workflow.md Phase 2): every item on screen comes from one of these. ── */
+  const random = seeded(7);
+  const PARTS = ['dish', 'feed', 'mount', 'drive', 'lna', 'modem'];
+  const SUBS = ['link', 'drive', 'feed', 'lna', 'modem', 'clock', 'store'];
+  const state = {
+    beat: 'standby', selected: 0, since: new Date(), time: new Date(),
+    az: 214.6, el: 37.2, slew: 0, torque: 31, temp: 41.2, vswr: 1.12, wind: 3.4, tilt: 0.02, noise: 38, gain: 52.4,
+    sig: -92.4, ebn0: 9.6, doppler: 12.4, rate: 8.2, frames: 0, buffer: 34, power: 58, store: 61,
+    modes: { track: 'auto', amp: 'off', uplink: 'off', record: 'on' }, manualSince: null,
+    down: [], up: [], events: [],
+  };
+  const linked = () => state.beat === 'tracking' || state.beat === 'degraded';
+
+  // On a touch screen the drawing is too small for 44px targets: there the part keys are the control and
+  // the schematic only shows the selection (svg.md §5).
+  const PART_CONTROLS = !window.matchMedia('(pointer: coarse)').matches;
+  if (!PART_CONTROLS) {
+    for (const g of document.querySelectorAll('.fui-part')) { g.removeAttribute('role'); g.removeAttribute('tabindex'); }
+    $('subject').setAttribute('role', 'img');
+  }
+
+  function step() {                                        // one sample of simulated data
+    const moving = linked() || state.beat === 'acquiring';
+    state.slew = moving ? wander(state.slew || 0.42, random, { min: 0.2, max: 0.7, step: 0.04 }) : 0;
+    if (moving) { state.az = (state.az + state.slew) % 360; state.el = wander(state.el, random, { min: 20, max: 70, step: 0.6 }); }
+    state.torque = state.beat === 'degraded' ? wander(87, random, { min: 84, max: 92, step: 1 }) : wander(moving ? 46 : 31, random, { min: 28, max: 55, step: 1.5 });
+    state.temp = wander(state.temp, random, { min: 39, max: 44, step: 0.2 });
+    state.wind = wander(state.wind, random, { min: 1, max: 7, step: 0.3 });
+    state.noise = wander(state.noise, random, { min: 36, max: 41, step: 0.3 });
+    state.buffer = wander(state.buffer, random, { min: 20, max: 60, step: 2 });
+    state.power = wander(state.power, random, { min: 52, max: 64, step: 1 });
+    if (linked()) {
+      state.sig = wander(state.sig, random, { min: -96, max: -88, step: 0.6 });
+      state.ebn0 = wander(state.ebn0, random, { min: 8, max: 11, step: 0.2 });
+      state.doppler = wander(state.doppler, random, { min: -20, max: 20, step: 0.8 });
+      state.rate = wander(state.rate, random, { min: 7.6, max: 8.6, step: 0.1 });
+      if (state.modes.record === 'on') state.frames += Math.round(state.rate * 12);
+    }
+    state.down.push(linked() ? state.sig : null);
+    state.up.push(linked() && state.modes.uplink === 'on' ? -60 + random() * 4 : null);
+    for (const trace of [state.down, state.up]) if (trace.length > 48) trace.shift();
+  }
+
+  function record(key, level = 'info', detail = '') {
+    state.events.unshift({ time: state.time, key, level, detail });
+    state.events.length = Math.min(state.events.length, 4);
+  }
+
+  /* ── What each shape shows, derived from the state. ── */
+  function subsystem(id) {
+    const b = state.beat;
+    if (id === 'link') return b === 'lost' ? ['crit', 'chip.lost', t('read.nocarrier')] : linked() ? ['data', 'chip.active', `${fixed(state.sig)} dBm`]
+      : b === 'acquiring' ? ['info', 'chip.sync', t('read.searching')] : ['', 'chip.null', t('read.nocarrier')];
+    if (id === 'drive') return b === 'degraded' ? ['warn', 'chip.check', `${t('read.torque')} ${fixed(state.torque, 0)} %`]
+      : ['data', 'chip.active', t(b === 'standby' ? 'read.parked' : b === 'acquiring' ? 'read.slewing' : 'read.following')];
+    if (id === 'feed') return ['data', 'chip.active', `${fixed(state.temp)} °C`];
+    if (id === 'lna') return ['data', 'chip.active', `${fixed(state.noise)} K`];
+    if (id === 'modem') return linked() ? ['data', 'chip.active', `${fixed(state.rate)} Mbps`] : b === 'acquiring' ? ['info', 'chip.sync', t('read.searching')]
+      : b === 'lost' ? ['warn', 'chip.check', t('read.noframes')] : ['', 'chip.null', t('read.idle')];
+    if (id === 'clock') return ['ok', 'chip.pass', t('read.gps')];
+    return ['data', 'chip.active', `${fixed(100 - state.store, 0)} % ${t('read.free')}`];
+  }
+  const FIGURES = {
+    dish: [['fig.az', () => fixed(state.az)], ['fig.el', () => fixed(state.el)]],
+    feed: [['fig.temp', () => fixed(state.temp)], ['fig.vswr', () => fixed(state.vswr, 2)]],
+    mount: [['fig.wind', () => fixed(state.wind)], ['fig.tilt', () => fixed(state.tilt, 2)]],
+    drive: [['fig.slew', () => fixed(state.slew, 2)], ['fig.torque', () => fixed(state.torque, 0)]],
+    lna: [['fig.noise', () => fixed(state.noise)], ['fig.gain', () => fixed(state.gain)]],
+    modem: [['fig.rate', () => (linked() ? fixed(state.rate) : '—')], ['fig.frames', () => state.frames.toLocaleString('en-US')]],
+  };
+  const MODES = [
+    { id: 'track', options: ['auto', 'manual'], value: () => `${fixed(state.slew, 2)} °/s` },
+    { id: 'amp', options: ['off', 'on'], value: () => (state.modes.amp === 'on' ? '20 W' : '0 W') },
+    { id: 'uplink', options: ['off', 'on'], value: () => (linked() ? (state.modes.uplink === 'on' ? '2.0 Mbps' : '0 Mbps') : t('mode.locked')), locked: () => !linked() },
+    { id: 'record', options: ['off', 'on'], value: () => state.frames.toLocaleString('en-US') },
+  ];
+
+  /* ── Render. Structure is built once per language; values are written in place so nothing shifts. ── */
+  function build() {
+    $('part-keys').innerHTML = PARTS.map((id, i) => `
+      <button class="fui-key" type="button" data-part="${id}" aria-pressed="false">
+        <span class="fui-key__name">${t(`part.${id}`)}</span><span class="fui-key__code">${zh() ? messages.en[`part.${id}`] : `P-0${i + 1}`}</span>
+      </button>`).join('');
+    $('cols').innerHTML = PARTS.map((id) => `<li data-part="${id}">${messages.en[`part.${id}`]}</li>`).join('');
+    $('modes').innerHTML = MODES.map((mode) => `
+      <div class="fui-mode" role="group" aria-label="${t(`mode.${mode.id}`)}" data-mode="${mode.id}">
+        <span class="fui-label">${t(`mode.${mode.id}`)}</span>
+        <span class="fui-mode__opts" role="radiogroup" aria-label="${t(`mode.${mode.id}`)}">
+          ${mode.options.map((o) => `<button class="fui-mode__opt" type="button" role="radio" data-option="${o}" aria-checked="false">${t(`opt.${o}`)}</button>`).join('')}
+        </span>
+        <span class="fui-mode__value fui-num"></span><span class="fui-mode__meta" hidden></span>
+      </div>`).join('');
+    $('subs').innerHTML = SUBS.map((id) => `
+      <li class="fui-chiprow" data-sub="${id}"><span class="fui-chip"></span><span class="fui-chiprow__name">${t(`sub.${id}`)}</span><span class="fui-chiprow__reading fui-num"></span></li>`).join('');
+    $('strip-top').innerHTML = SUBS.map((id) => `<li data-sub="${id}"><span class="fui-chip"></span><span class="fui-tagstrip__code">${messages.en[`sub.${id}`]}</span></li>`).join('');
+    $('strip-bottom').innerHTML = ['PASS', 'ORBIT', 'FRAMES', 'RATE', 'CRAFT'].map((code) =>
+      `<li><span class="fui-chip">${code}</span><span class="fui-tagstrip__code fui-num" data-session="${code}"></span></li>`).join('');
+    $('meters').innerHTML = [['signal', ''], ['buffer', '1'], ['power', '2'], ['torque', ''], ['store', '']].map(([id, tint]) => `
+      <div class="fui-meter" data-meter="${id}"${tint ? ` data-tint="${tint}"` : ''}>
+        <dt class="fui-meter__name">${t(`meter.${id}`)}</dt><dd class="fui-meter__value fui-num"></dd>
+        <dd class="fui-gauge" role="meter" aria-label="${t(`meter.${id}`)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></dd>
+        <dd class="fui-meter__note" hidden></dd>
+      </div>`).join('');
+  }
+
+  function meter(id, percent, stateName = '', note = '') {
+    const row = document.querySelector(`[data-meter="${id}"]`);
+    const gauge = row.querySelector('.fui-gauge');
+    const value = Math.round(percent / (100 / 24)) / 24;                     // snap to whole segments
+    gauge.style.setProperty('--fui-steps', String(Math.max(1, Math.round(Math.abs(value - (Number(gauge.dataset.value) || 0)) * 24))));
+    gauge.style.setProperty('--fui-value', String(value));
+    if ('value' in gauge.dataset) gauge.dataset.ready = '';                  // transitions start only after the first value is painted
+    gauge.dataset.value = String(value);
+    gauge.setAttribute('aria-valuenow', String(Math.round(percent)));
+    row.querySelector('.fui-meter__value').innerHTML = `${Math.round(percent)}<span class="fui-unit">%</span>`;
+    if (stateName) row.dataset.state = stateName; else delete row.dataset.state;
+    const line = row.querySelector('.fui-meter__note');
+    line.hidden = !note;
+    line.textContent = note;
+  }
+
+  function trace(id, samples, lo, hi) {
+    const points = samples.map((v, i) => (v == null ? null : `${(i * 96 / 47).toFixed(1)},${(22 - ((v - lo) / (hi - lo)) * 20).toFixed(1)}`)).filter(Boolean);
+    $(id).setAttribute('points', points.join(' '));
+  }
+
+  function place() {                                       // the axis and the figures stand on the selected part
+    const frame = $('window').getBoundingClientRect();
+    const part = document.querySelector(`.fui-part[data-part="${PARTS[state.selected]}"]`).getBoundingClientRect();
+    const x = part.left + part.width / 2 - frame.left, y = part.top + part.height / 2 - frame.top;
+    $('axis-x').style.setProperty('--fui-y', `${y}px`);
+    $('axis-y').style.setProperty('--fui-x', `${x}px`);
+    const figure = $('figure');
+    figure.style.left = `${Math.min(frame.width - figure.offsetWidth - 12, part.right - frame.left + 18)}px`;
+    figure.style.top = `${Math.min(frame.height - figure.offsetHeight - 12, Math.max(96, y + 14))}px`;
+  }
+
+  function render() {
+    const b = state.beat, part = PARTS[state.selected];
+    $('clock').firstChild.textContent = clock(state.time);
+
+    // Parts: keys, column headings, and the schematic share one selection.
+    for (const key of $('part-keys').children) key.setAttribute('aria-pressed', String(key.dataset.part === part));
+    for (const col of $('cols').children) { if (col.dataset.part === part) col.setAttribute('aria-current', 'true'); else col.removeAttribute('aria-current'); }
+    for (const g of document.querySelectorAll('.fui-part')) {
+      const on = String(g.dataset.part === part);
+      if (PART_CONTROLS) { g.setAttribute('aria-pressed', on); g.setAttribute('aria-label', `${t(`part.${g.dataset.part}`)}, P-0${PARTS.indexOf(g.dataset.part) + 1}`); }
+      else g.dataset.selected = on;
+    }
+    $('part-index').textContent = `0${state.selected + 1} / 0${PARTS.length}`;
+    $('figure').innerHTML = FIGURES[part].map(([key, value]) => `<b class="fui-figure__value fui-num">${value()}</b><span class="fui-figure__label">${t(key)}</span>`).join('');
+
+    // Modes.
+    let inHand = 0;
+    for (const mode of MODES) {
+      const tile = document.querySelector(`[data-mode="${mode.id}"]`), locked = mode.locked?.() ?? false, manual = mode.id === 'track' && state.modes.track === 'manual';
+      for (const option of tile.querySelectorAll('.fui-mode__opt')) {
+        option.setAttribute('aria-checked', String(!locked && option.dataset.option === state.modes[mode.id]));
+        option.tabIndex = option.dataset.option === state.modes[mode.id] ? 0 : -1;
+        option.disabled = locked;
+      }
+      if (locked) tile.dataset.locked = 'true'; else delete tile.dataset.locked;
+      if (manual) tile.dataset.state = 'warn'; else delete tile.dataset.state;
+      tile.querySelector('.fui-mode__value').textContent = mode.value();
+      const meta = tile.querySelector('.fui-mode__meta');
+      meta.hidden = !manual;
+      meta.innerHTML = manual ? `${t('mode.since')} <span class="fui-num">${clock(state.manualSince)}Z</span>` : '';
+      if (!locked && state.modes[mode.id] !== mode.options[0]) inHand += 1;
+    }
+    $('mode-count').textContent = `${inHand} / ${MODES.length}`;
+
+    // Subsystems: chip rows and the strip above the stage read the same states.
+    let alive = 0;
+    for (const id of SUBS) {
+      const [stateName, chip, reading] = subsystem(id);
+      if (stateName !== 'crit' && stateName !== 'warn') alive += 1;
+      for (const el of document.querySelectorAll(`[data-sub="${id}"]`)) {
+        if (stateName) el.dataset.state = stateName; else delete el.dataset.state;
+        el.querySelector('.fui-chip').textContent = t(chip);
+        const out = el.querySelector('.fui-chiprow__reading');
+        if (out) out.textContent = reading;
+      }
+    }
+    $('sub-count').textContent = `${alive} / ${SUBS.length}`;
+    const session = { PASS: '0412', ORBIT: '18', FRAMES: state.frames.toLocaleString('en-US'), RATE: linked() ? `${fixed(state.rate)} MBPS` : '—', CRAFT: 'ARGO-7' };
+    for (const el of document.querySelectorAll('[data-session]')) el.textContent = session[el.dataset.session];
+
+    // The headline plate: one word for what the station is doing; its ink follows the state.
+    const plate = $('plate'), word = t(b === 'standby' ? 'plate.standby' : b === 'acquiring' ? 'plate.acquiring' : b === 'lost' ? 'plate.lost' : 'plate.tracking');
+    const ink = { standby: '', acquiring: '', tracking: 'ok', degraded: 'warn', lost: 'crit' }[b];
+    if (ink) plate.dataset.state = ink; else delete plate.dataset.state;
+    $('plate-state').textContent = word;
+    $('plate-tag').hidden = b !== 'acquiring';
+    const meta = b === 'degraded' ? `${t('plate.meta.degraded')} ${fixed(state.torque, 0)} %` : b === 'lost' ? `${t('plate.meta.lost')} ${clock(state.since)}Z` : '';
+    $('plate-meta').hidden = !meta;
+    $('plate-meta').textContent = meta;
+    $('craft').dataset.inPass = String(b !== 'standby');
+    const u = ((state.az % 90) / 90), cx = 80 + u * (2 * (1 - u) * 400 + u * 820), cy = (1 - u) * (1 - u) * 220 + 2 * u * (1 - u) * -40 + u * u * 180;
+    $('craft-mark').setAttribute('x', String(cx - 6)); $('craft-mark').setAttribute('y', String(cy - 6));
+    $('bore').setAttribute('d', `M514 142L${cx.toFixed(1)} ${cy.toFixed(1)}`);
+
+    // Right rail.
+    $('sig').textContent = linked() ? fixed(state.sig) : '—';
+    $('sig-word').textContent = t(linked() ? 'word.locked' : b === 'acquiring' ? 'word.searching' : 'word.nocarrier');
+    $('ebn0').textContent = linked() ? `${fixed(state.ebn0)} dB` : '—';
+    $('doppler').textContent = linked() ? `${state.doppler >= 0 ? '+' : '−'}${fixed(Math.abs(state.doppler))} kHz` : '—';
+    $('rate').textContent = linked() ? `${fixed(state.rate)} Mbps` : '—';
+    meter('signal', linked() ? Math.max(0, Math.min(100, (state.sig + 110) * 4)) : 0);
+    meter('buffer', state.buffer);
+    meter('power', state.power);
+    meter('torque', state.torque, state.torque > 80 ? 'warn' : '', state.torque > 80 ? t('note.high') : '');
+    meter('store', state.store);
+    $('ch-down').textContent = linked() ? `${fixed(state.sig)} dBm` : '—';
+    $('ch-up').textContent = linked() && state.modes.uplink === 'on' ? '2.0 Mbps' : t('opt.off').toUpperCase();
+    trace('trace-down', state.down, -98, -86);
+    trace('trace-up', state.up, -62, -54);
+    $('log').innerHTML = state.events.map((ev, i) => `
+      <li><span class="fui-chip fui-chip--outline fui-num"${i === 0 ? ' aria-current="true"' : ''}>${clock(ev.time)}</span><span>${t(ev.key)}${ev.detail ? ` ${ev.detail}` : ''}</span></li>`).join('');
+
+    // Dock: the main key says what it will do, or what it is doing.
+    const track = $('track'), phase = b === 'standby' ? 'acquire' : b === 'acquiring' ? 'acquiring' : b === 'lost' ? 'reacquire' : 'tracking';
+    $('track-name').textContent = t(`action.${phase}`);
+    $('track-code').textContent = t(`action.${phase}.code`);
+    track.setAttribute('aria-pressed', String(b === 'acquiring' || linked()));
+    if (linked()) track.dataset.state = 'ok'; else delete track.dataset.state;
+    $('stop').disabled = b === 'standby';
+    if (b === 'standby') delete $('stop').dataset.state; else $('stop').dataset.state = 'crit';
+    $('status').textContent = t(`status.${b}`);
+    place();
+  }
+
+  function setLocale(next) {
+    locale = next in messages ? next : 'en';
+    document.documentElement.lang = locale;
+    for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
+    for (const el of document.querySelectorAll('[data-i18n-label]')) el.setAttribute('aria-label', t(el.dataset.i18nLabel));
+    for (const el of document.querySelectorAll('.fui-lang__opt')) el.setAttribute('aria-pressed', String(el.lang === locale));
+    build();
+    syncFeedWords();
+    render();
+  }
+
+  /* ── Feed, pause control, heartbeat. ── */
+  const feed = createFeed({ hz: 1, onSample: (time) => { state.time = time; step(); render(); } });
+  function syncFeedWords() {
+    $('live').dataset.live = String(!feed.paused);
+    $('live').querySelector('.fui-live__word').textContent = t(feed.paused ? 'live.paused' : 'live.live');
+    $('pause').setAttribute('aria-pressed', String(feed.paused));
+    $('pause').textContent = t(feed.paused ? 'action.resume' : 'action.pause');
+  }
+  $('pause').addEventListener('click', () => { feed.paused ? feed.resume() : feed.pause(); syncFeedWords(); });
+
+  /* ── Storyboard beats (scenarios.md §2): reached by URL, keys, or the operator. Never by timer. ── */
+  let flip = 0;
+  const scenario = createScenario({
+    beats: [{ id: 'standby' }, { id: 'acquiring' }, { id: 'tracking' }, { id: 'degraded' }, { id: 'lost' }],
+    apply(beat) {
+      const changed = state.beat !== beat.id;
+      state.beat = beat.id;
+      state.since = state.time = new Date();
+      if (beat.id === 'degraded') state.selected = PARTS.indexOf('drive');           // the part in trouble comes to the stage
+      if (!linked()) state.modes.uplink = 'off';
+      step();
+      record(`log.${beat.id}`, { degraded: 'warn', lost: 'crit' }[beat.id] ?? 'info');
+      if (!$('part-keys').children.length) return;                                    // first call: the page is not built yet
+      render();
+      if (changed) {                                                                  // the state word blinks three times, then holds
+        $('plate').dataset.flip = '';
+        window.clearTimeout(flip);
+        flip = window.setTimeout(() => delete $('plate').dataset.flip, 1500);
+      }
+    },
+  });
+
+  function select(id) {
+    const index = PARTS.indexOf(id);
+    if (index < 0 || index === state.selected) return;
+    state.selected = index;
+    record('log.select', 'info', `P-0${index + 1}`);
+    render();
+  }
+  $('part-keys').addEventListener('click', (event) => select(event.target.closest('[data-part]')?.dataset.part));
+  if (PART_CONTROLS) $('subject').addEventListener('click', (event) => select(event.target.closest('[data-part]')?.dataset.part));
+  $('subject').addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    select(event.target.closest('[data-part]')?.dataset.part);
+  });
+  $('modes').addEventListener('click', (event) => {
+    const option = event.target.closest('.fui-mode__opt');
+    if (!option || option.disabled) return;
+    const id = option.closest('[data-mode]').dataset.mode;
+    if (state.modes[id] === option.dataset.option) return;
+    state.modes[id] = option.dataset.option;
+    if (id === 'track') { state.manualSince = option.dataset.option === 'manual' ? new Date() : null; record(`log.${option.dataset.option}`, option.dataset.option === 'manual' ? 'warn' : 'info'); }
+    render();
+  });
+  $('modes').addEventListener('keydown', (event) => {                                 // radio group: arrows move and select
+    const option = event.target.closest('.fui-mode__opt');
+    if (!option || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    event.preventDefault();
+    const other = [...option.parentElement.children].find((el) => el !== option);
+    other.click();
+    other.focus();
+  });
+  $('prev').addEventListener('click', () => scenario.prev());
+  $('next').addEventListener('click', () => scenario.next());
+  $('track').addEventListener('click', () => scenario.go({ standby: 'acquiring', acquiring: 'tracking', lost: 'acquiring' }[state.beat] ?? state.beat));
+  $('stop').addEventListener('click', () => scenario.go('standby'));
+  for (const option of document.querySelectorAll('.fui-lang__opt')) option.addEventListener('click', () => setLocale(option.lang));
+  new ResizeObserver(place).observe($('window'));
+
+  const wanted = new URLSearchParams(location.search).get('lang');
+  setLocale(wanted ?? ((navigator.language || 'en').toLowerCase().startsWith('zh') ? 'zh-CN' : 'en'));
+</script>
+</body>
+</html>

@@ -16,7 +16,7 @@
 
 ## 实机预览
 
-### 1. 战术指挥控制台（`assets/tactical.html`）
+### 1. 实机 3D 战术指挥控制台展示（零依赖模板：`assets/tactical.html`）
 *推荐用于 3D 孪生、AI 助手、多模态与多子系统控制台：零空洞三栏结构、3px 面板语义竖标（`data-accent`）、Behance 原片同款分单位纪元时钟（`.fui-chrono`）、自动避让主体的上下文 HUD 浮窗查看器（`.fui-hud-card`）、触感矩阵/分段选择器（替代丑陋原生 `<select>`）、可控慢速自转点阵地球仪 + 实时气象、透明悬浮流光声纹（`drawOrbit`）、紧致三瓦片模式板与常驻 `.fui-chat` 指令通讯终端。*
 
 ![战术指挥控制台预览](./docs/preview-tactical-zh.png)

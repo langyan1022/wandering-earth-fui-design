@@ -16,7 +16,7 @@ Film-grade aerospace FUI (Fictional / Futuristic User Interface) translated into
 
 ## Previews
 
-### 1. Tactical Command Console (`assets/tactical.html`)
+### 1. Live 3D Tactical Command Console Showcase (starter: `assets/tactical.html`)
 *Recommended for rich 3D, AI assistant, multimodal, and multi-subsystem consoles: 3-column zero-void frame, 3px semantic vertical header ticks (`data-accent`), Behance split-unit chronometer (`.fui-chrono`), subject-avoiding contextual HUD viewers (`.fui-hud-card`), tactile segmented/matrix pickers, controllable rotating dot-matrix globe + site weather, transparent floating `drawOrbit` voice wave, compact 3-tile mode deck, and always-on `.fui-chat`.*
 
 ![Tactical Command Console Preview](./docs/preview-tactical-zh.png)

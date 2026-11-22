@@ -35,7 +35,7 @@ ORDER = [
     "components/panel", "components/readout", "components/gauge", "components/badge",
     "components/button", "components/form", "components/navigation", "components/table",
     "components/list", "components/chart", "components/message", "components/dialog",
-    "components/states", "components/console", "components/chat", "components/media",
+    "components/states", "components/console", "components/chat", "components/media", "components/credential",
     "patterns", "station", "hud-viewers", "scenarios", "geo", "audio", "logos", "globe-webgl",
 ]
 ALWAYS = ["tokens", "foundations"]

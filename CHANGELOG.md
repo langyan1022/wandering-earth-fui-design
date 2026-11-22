@@ -1,5 +1,14 @@
 # Changelog
 
+## v3.2.0 — Personnel Access Badge & 1-Inch Biometric Cutout ID Photo (2026-11-22)
+
+- **New component spec (`references/components/credential.md`, compiled into `assets/fui.css` as module #32)**:
+  - **Dual-sided Personnel Access Badge (`.fui-badge-card`, 450:282 container-scaled print layout)** with `--fui-card-slate`, `--fui-card-paper`, `--fui-card-ink`, `--fui-card-crimson` print surface tokens.
+  - **Standard 1-Inch Biometric Cutout ID Photo (`.fui-id-photo`, 25×35mm / 5:7)** with blueprint backdrop, corner reticle, portrait-rights-safe SVG vector silhouette default, busy matting overlay, and synchronized top-to-bottom scan-to-cutout wipe animation (`prefers-reduced-motion` & global `Freeze` compliant).
+  - **Right-rail docked credential trio (`.fui-credential-dock`)** and **dual-sided verification modal stage (`.fui-credential-stage`)**.
+- **New zero-dependency helper (`assets/fui-credential.js`)**: `buildCode128Svg` (scannable ISO/IEC 15417 Code-128B vector barcode), `formatCredentialSerial`, `renderCredentialCard`, `renderIdPhoto`, and `cutoutPortrait` (offline 25:35 crop + perceptual flood-fill matte + optional neural segmenter hook).
+- **Updated `assets/tactical.html`** to include a live docked Tu Hengyu (`图恒宇`) access badge + 1-inch ID photo preview + click-to-open dual-sided verification modal.
+
 ## v3.1 — Tactical Command Console & Production Engineering Edition (2026-11-22)
 
 Synthesizes v3's film-authentic visual system with battle-tested patterns from real-world 3D + AI assistant FUI consoles:

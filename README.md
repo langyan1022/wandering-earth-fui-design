@@ -17,11 +17,16 @@ Film-grade aerospace FUI (Fictional / Futuristic User Interface) translated into
 ## Previews
 
 ### 1. Live 3D Tactical Command Console Showcase (starter: `assets/tactical.html`)
-*Recommended for rich 3D, AI assistant, multimodal, and multi-subsystem consoles: 3-column zero-void frame, 3px semantic vertical header ticks (`data-accent`), Behance split-unit chronometer (`.fui-chrono`), subject-avoiding contextual HUD viewers (`.fui-hud-card`), tactile segmented/matrix pickers, controllable rotating dot-matrix globe + site weather, transparent floating `drawOrbit` voice wave, compact 3-tile mode deck, and always-on `.fui-chat`.*
+*Recommended for rich 3D, AI assistant, multimodal, and multi-subsystem consoles: 3-column zero-void frame, 3px semantic vertical header ticks (`data-accent`), Behance split-unit chronometer (`.fui-chrono`), subject-avoiding contextual HUD viewers (`.fui-hud-card`), tactile segmented/matrix pickers, controllable rotating dot-matrix globe + site weather, transparent floating `drawOrbit` voice wave, dual-sided access badge + 1-inch cutout ID portrait (`.fui-badge-card` / `.fui-id-photo`), compact 3-tile mode deck, and always-on `.fui-chat`.*
 
 ![Tactical Command Console Preview](./docs/preview-tactical-zh.png)
 
-### 2. Station Console (`assets/station.html`)
+### 2. Dual-Sided Access Badge & 1-Inch Biometric Cutout ID Photo (`references/components/credential.md` + `assets/fui-credential.js`)
+*Zero-dependency reusable vector SVG personnel badge (`450:282`, front + back) with real scannable ISO/IEC 15417 Code-128B vector barcodes, paired with a standard 1-inch (`25×35mm`) cutout ID portrait featuring a portrait-rights-safe blueprint silhouette default, top-to-bottom biometric scan-to-cutout reveal, and offline canvas matting.*
+
+![Access Badge and 1-Inch ID Photo Preview](./docs/preview-credential.png)
+
+### 3. Station Console (`assets/station.html`)
 *Recommended for minimalist monitoring & switching stations: pure black ground (`--fui-void`), frameless control groups, rounded 6px white `.fui-key` outlines, orange selection (`--fui-act`), mode tiles, chip rows, tag strips, and blueprint schematic stage.*
 
 ![Station Console Preview](./docs/preview-station-en.png)
@@ -58,11 +63,12 @@ Once installed, invoke it naturally in chat (e.g. *"Build this dashboard using t
 | Path | Description |
 |---|---|
 | `SKILL.md` | Agent entrypoint: visual principles, two first-class console compositions, tokens, motion gate, never-do list, and QA checklist |
-| `assets/fui.css` | **Compiled 31-module zero-dependency stylesheet** (165 KB) generated from `references/*.md` via `scripts/build_css.py` |
-| `assets/tactical.html` | Working **Tactical Command Console** starter (3-column command layout, HUD viewers, chronometer, globe, floating audio, comms) |
+| `assets/fui.css` | **Compiled 32-module zero-dependency stylesheet** generated from `references/*.md` via `scripts/build_css.py` |
+| `assets/tactical.html` | Working **Tactical Command Console** starter (3-column command layout, HUD viewers, chronometer, globe, floating audio, docked access badge & 1-inch ID photo, comms) |
 | `assets/station.html` | Working **Station Console** starter (shapes on black, orange selection, tag strips, schematic stage) |
 | `assets/starter.html` | Working **Monitor / Table Workbench** starter |
 | `assets/fui-sim.js` | Deterministic seeded data, pausable feed (`?paused=1`), and storyboard beat driver (`?beat=`, `[` / `]`, optional `immediate: false` + `start()`) |
+| `assets/fui-credential.js` | Zero-dependency **dual-sided personnel access badge**, real **ISO/IEC 15417 Code-128B** SVG barcode, **1-inch (25×35mm) biometric cutout ID portrait** with top-to-bottom scan reveal, and offline canvas matting |
 | `assets/fui-geo.js` | Zero-dependency dot-matrix globe (`drawGlobe`, `flyTo`, `attachGlobeControls`) & flat world map (`drawFlatMap`) |
 | `assets/fui-audio.js` | Zero-dependency glowing sine waves (`drawOrbit`), comms envelope (`drawEnvelope`), spectrum (`drawSpectrum`), meter, and radial renderers |
 | `assets/encom-globe/` | Optional WebGL globe (MIT, Robert Scanlon) with token-themed adapter (`references/globe-webgl.md`) |

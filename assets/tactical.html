@@ -66,6 +66,9 @@
     .tc-dock-audio { border-right: 1px solid var(--fui-line-2); }
     .tc-dock-audio .fui-voice { grid-template-columns: auto minmax(76px, 1fr) 8.5ch; gap: var(--fui-space-2); }
     .tc-dock-audio .fui-voice__wave--none { white-space: nowrap; justify-content: center; }
+    .tc-auth-panel { flex: none; }
+    .tc-auth-panel > .fui-panel__body { flex: none; padding: var(--fui-space-2) var(--fui-space-3); }
+    .tc-auth-panel > .fui-mode-deck { border-top: 1px solid var(--fui-line-2); }
     .tc-authority { display: flex; align-items: center; gap: var(--fui-space-2); padding: var(--fui-space-2) var(--fui-space-3); border-bottom: 1px solid var(--fui-line-2); }
     .tc-authority__emblem { width: 28px; height: 28px; flex: none; background: var(--fui-text-hi); -webkit-mask: url(logos/ueg-emblem.svg) center / contain no-repeat; mask: url(logos/ueg-emblem.svg) center / contain no-repeat; }
     .tc-authority__text { display: grid; gap: 2px; min-width: 0; margin-right: auto; }
@@ -258,9 +261,9 @@
     </section>
   </main>
 
-  <!-- Right Rail: Authority Header + 3-Tile Mode Deck + Always-On Tactical Comms -->
+  <!-- Right Rail: Authority Header + Docked Credential Badge & 1-Inch ID Photo + 3-Tile Mode Deck + Always-On Tactical Comms -->
   <aside class="fui-console__aside fui-rail" aria-label="指挥授权与通讯终端" data-i18n-label="label.aside">
-    <section class="fui-panel" data-accent="intel" aria-labelledby="p-auth">
+    <section class="fui-panel tc-auth-panel" data-accent="intel" aria-labelledby="p-auth">
       <div class="tc-authority">
         <span class="tc-authority__emblem" role="img" aria-label="UEG Emblem"></span>
         <div class="tc-authority__text">
@@ -268,6 +271,19 @@
           <span class="fui-num">550W CORE · UNIT 01</span>
         </div>
         <span class="fui-badge" data-state="ok" data-i18n="auth.verified">已核验</span>
+      </div>
+      <div class="fui-panel__body">
+        <div class="fui-credential-dock">
+          <button class="fui-credential-dock__card" id="rail-badge" type="button" aria-label="Open full dual-sided access badge"></button>
+          <button class="fui-credential-dock__photo" id="rail-photo" type="button" aria-label="1-inch ID portrait — click to upload or inspect"></button>
+          <div class="fui-credential-dock__side">
+            <span class="fui-chip" data-state="ok" data-i18n="auth.verified">已核验</span>
+            <span class="fui-num fui-credential-dock__id">IQC-001</span>
+            <button class="fui-key fui-key--sm" id="btn-badge-modal" type="button" data-i18n="badge.open">工牌</button>
+            <button class="fui-key fui-key--sm" id="btn-photo-upload" type="button" data-i18n="badge.upload">上传照</button>
+          </div>
+        </div>
+        <input id="photo-file-in" type="file" accept="image/*" hidden>
       </div>
       <div class="fui-mode-deck" role="group" aria-label="Modes">
         <button class="fui-mode-deck__tile" id="m-tts" type="button" data-state="ok" aria-pressed="true"><span class="fui-label">TTS-01</span><span class="fui-mode-deck__val fui-num" id="m-tts-v">ON</span></button>
@@ -315,10 +331,36 @@
   </footer>
 </div>
 
+<!-- Dual-Sided Access Badge & 1-Inch Biometric Cutout ID Photo Modal -->
+<dialog class="fui-dialog" id="dlg-credential" aria-labelledby="dlg-cred-title" style="width: min(1040px, calc(100vw - 24px)); max-width: 1040px;">
+  <header class="fui-dialog__head">
+    <span class="fui-badge fui-badge--solid" data-state="intel">AUTH-ID</span>
+    <h2 class="fui-dialog__title" id="dlg-cred-title" data-i18n="badge.modal_title">人员工牌与一寸证件照核验</h2>
+    <button class="fui-btn fui-btn--icon" id="dlg-cred-close" type="button" aria-label="Close">×</button>
+  </header>
+  <div class="fui-dialog__body">
+    <div class="fui-credential-stage" data-view="dual">
+      <div class="fui-credential-slot fui-credential-slot--photo">
+        <span class="fui-credential-slot__tag fui-num">PHOTO // 25×35MM</span>
+        <button class="fui-id-photo-frame" id="modal-photo" type="button" aria-label="Upload 1-inch ID photo"></button>
+      </div>
+      <div class="fui-credential-slot fui-credential-slot--front">
+        <span class="fui-credential-slot__tag fui-num">FRONT // IDENTITY</span>
+        <div class="fui-credential-frame" id="modal-front"></div>
+      </div>
+      <div class="fui-credential-slot fui-credential-slot--back">
+        <span class="fui-credential-slot__tag fui-num">BACK // FACILITY</span>
+        <div class="fui-credential-frame" id="modal-back"></div>
+      </div>
+    </div>
+  </div>
+</dialog>
+
 <script type="module">
   import { createScenario, createFeed, seeded, wander } from './fui-sim.js';
   import { drawGlobe, attachGlobeControls, flyTo } from './fui-geo.js';
   import { createOrbit, drawOrbit, drawSpectrum, drawEnvelope } from './fui-audio.js';
+  import { renderCredentialCard, renderIdPhoto, cutoutPortrait } from './fui-credential.js';
 
   const MSG = {
     'zh-CN': {
@@ -336,6 +378,7 @@
       'hud.intel': '图文·550W', 'hud.weather': '气象', 'hud.audio': '音频', 'foot.keys': '场景切换',
       'live.on': '在线', 'live.frozen': '已冻结', 'hud.dock': '换边', 'hud.expand': '展开', 'hud.close': '关闭',
       'hud.recall': '弹窗 · 550W 档案', 'hud.wx_recall': '弹窗 · 气象情报',
+      'badge.open': '工牌', 'badge.upload': '证件照', 'badge.modal_title': '人员工牌与一寸证件照核验', 'badge.photo_empty': '一寸证件照',
     },
     en: {
       'strip.title': '550W Tactical Console', 'strip.sim': 'Simulated', 'action.freeze': 'Freeze', 'action.resume': 'Resume',
@@ -352,6 +395,7 @@
       'hud.intel': 'Intel · 550W', 'hud.weather': 'Weather', 'hud.audio': 'Audio', 'foot.keys': 'Beats',
       'live.on': 'Live', 'live.frozen': 'Frozen', 'hud.dock': 'Side', 'hud.expand': 'Expand', 'hud.close': 'Close',
       'hud.recall': 'Popup · 550W Dossier', 'hud.wx_recall': 'Popup · Weather',
+      'badge.open': 'Badge', 'badge.upload': 'ID Photo', 'badge.modal_title': 'Access badge & 1-inch ID photo', 'badge.photo_empty': '1-IN PHOTO',
     },
   };
 
@@ -381,6 +425,12 @@
     beat: 'nominal', cam: 'main', city: CITIES[0], hud: qs.get('hud') || 'intel',
     dock: 'left', expanded: false, wave: 'orbit', spin: true,
     cpu: 24, mem: 58, pwr: 96, disk: 62, elapsed: 46, time: new Date(),
+    badge: {
+      name: '图恒宇', latin: 'TUHENGYU', idCode: 'IQC-001', serial: '222179', clearance: 'CS',
+      org: 'BEIJING SPACE CENTER', orgShort: 'BSC', acronym: 'IQC',
+      dept: '智能量子计算机重点实验室', deptEn: 'KEY LABORATORY OF INTELLIGENT QUANTUM COMPUTER',
+      role: '研究员', photoDataUrl: '', photoRawDataUrl: '', photoCutout: true,
+    },
     logs: [
       { ts: '15:42:55', src: 'CORE', msg: '550W telemetry synchronized', lvl: 'ok' },
       { ts: '15:42:14', src: 'HUD', msg: 'Intel dossier INTEL-550W projected', lvl: 'data' },
@@ -564,7 +614,23 @@
       </li>`;
 
     renderHud();
+    renderCredential();
     drawAudio();
+  }
+
+  function renderCredential({ scanReveal = false } = {}) {
+    const isZh = locale === 'zh-CN';
+    const cfg = {
+      ...state.badge,
+      name: isZh ? state.badge.name : 'TU HENGYU',
+      role: isZh ? state.badge.role : 'Researcher',
+      dept: isZh ? state.badge.dept : 'Quantum Computing Lab',
+    };
+    $('rail-badge').innerHTML = renderCredentialCard(cfg, { side: 'front' });
+    $('rail-photo').innerHTML = renderIdPhoto(cfg, { compact: true, scanReveal, labels: { empty: t('badge.photo_empty') } });
+    $('modal-front').innerHTML = renderCredentialCard(cfg, { side: 'front' });
+    $('modal-back').innerHTML = renderCredentialCard(cfg, { side: 'back' });
+    $('modal-photo').innerHTML = renderIdPhoto(cfg, { scanReveal, labels: { empty: t('badge.photo_empty') } });
   }
 
   function buildDynamicControls() {
@@ -671,6 +737,22 @@
   $('freeze-btn').addEventListener('click', () => { feed.paused ? feed.resume() : feed.pause(); syncFreezeUi(); drawAudio(); });
   for (const b of document.querySelectorAll('.fui-lang__opt')) b.addEventListener('click', () => setLocale(b.lang));
   $('composer').addEventListener('submit', (e) => { e.preventDefault(); const v = $('chat-in').value.trim(); if (!v) return; state.logs.unshift({ ts: state.time.toTimeString().slice(0, 8), src: 'OP-01', msg: v, lvl: 'data' }); state.logs.length = Math.min(state.logs.length, 4); $('chat-in').value = ''; render(); });
+  const openBadgeModal = () => { renderCredential({ scanReveal: true }); $('dlg-credential').showModal(); };
+  $('rail-badge').addEventListener('click', openBadgeModal);
+  $('btn-badge-modal').addEventListener('click', openBadgeModal);
+  $('dlg-cred-close').addEventListener('click', () => $('dlg-credential').close());
+  const pickPhoto = () => { $('photo-file-in').value = ''; $('photo-file-in').click(); };
+  $('rail-photo').addEventListener('click', pickPhoto);
+  $('btn-photo-upload').addEventListener('click', pickPhoto);
+  $('modal-photo').addEventListener('click', pickPhoto);
+  $('photo-file-in').addEventListener('change', async () => {
+    const f = $('photo-file-in').files?.[0];
+    if (!f) return;
+    const res = await cutoutPortrait(f, { sensitivity: 50 });
+    state.badge.photoRawDataUrl = res.rawDataUrl;
+    state.badge.photoDataUrl = res.cutoutDataUrl;
+    renderCredential({ scanReveal: true });
+  });
 
   attachGlobeControls($('geo-globe'), view, redrawGlobe);
   document.addEventListener('visibilitychange', syncSpinLoop);

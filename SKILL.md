@@ -92,11 +92,12 @@ The specs explain; these files do the work. Use them instead of retyping.
 
 | File | Use it to |
 |---|---|
-| `assets/fui.css` | Get every token, base style, frame, element, and component in one stylesheet (31 modules). Link it, or copy it into the project. It is generated from the `css` blocks in `references/` — to change a rule, edit the reference and run `python3 scripts/build_css.py`; for a smaller sheet, `--only core,chart,geo,hud-viewers` |
-| `assets/tactical.html` | **Start a 3D / AI / multimodal command console here.** Zero-void 3-column tactical frame with 3px semantic header ticks, Behance split-unit chronometer, subject-avoiding contextual HUD viewers, tactile pickers, rotating dot-matrix globe + site weather, transparent floating `drawOrbit` audio, compact 3-tile mode deck, and always-on `.fui-chat` |
+| `assets/fui.css` | Get every token, base style, frame, element, and component in one stylesheet (32 modules). Link it, or copy it into the project. It is generated from the `css` blocks in `references/` — to change a rule, edit the reference and run `python3 scripts/build_css.py`; for a smaller sheet, `--only core,chart,geo,hud-viewers,credential` |
+| `assets/tactical.html` | **Start a 3D / AI / multimodal command console here.** Zero-void 3-column tactical frame with 3px semantic header ticks, Behance split-unit chronometer, subject-avoiding contextual HUD viewers, tactile pickers, rotating dot-matrix globe + site weather, transparent floating `drawOrbit` audio, docked access badge + 1-inch ID portrait, compact 3-tile mode deck, and always-on `.fui-chat` |
 | `assets/station.html` | **Start a minimalist station console here.** A working station console: black ground, one blueprint window with a selectable schematic, keys, mode tiles, chip rows, tag strips, meter rows, title card, headline plate; simulated feed with pause, five storyboard beats, both languages. Replace its inventory with the product's |
 | `assets/starter.html` | Start a dense data tool here: a monitor console built from panels and a table (the workbench archetypes), with the banner slot, simulated feed, four beats, both languages |
 | `assets/fui-sim.js` | Drive simulated data: seeded values, a pausable feed, and beats reachable by `?beat=` and `[` `]` keys, with optional `immediate: false` + `start()` for multi-module startup ([scenarios.md](references/scenarios.md) §8) |
+| `assets/fui-credential.js` | Zero-dependency dual-sided access badge renderer (450:282), ISO/IEC 15417 Code-128B vector barcode generator, 1-inch (25×35mm) biometric cutout ID portrait with scan reveal, and offline canvas matting ([components/credential.md](references/components/credential.md)) |
 | `scripts/bundle_html.py` | Turn a page that links `fui.css` and imports the JS helpers into one self-contained file that opens from disk |
 | `scripts/fui_lint.py` | Run the static checks of [qa.md](references/qa.md) §3 on the delivered source |
 | `scripts/fui_verify.mjs` | Render every size × language × beat, save screenshots, measure viewport share, and run the probes (`scripts/fui_probes.js`). Needs Node with Playwright (Chromium, Chrome, or Edge on Windows) |
@@ -149,7 +150,7 @@ All paths are under `references/`.
 |---|---|---|
 | Tokens, components, layout, motion (CSS and markup) | nothing | — |
 | Fonts: Rajdhani, JetBrains Mono, Source Han Sans SC / Noto Sans SC | a font host or self-hosted files | no |
-| `assets/fui-geo.js`, `assets/fui-audio.js`, `assets/logos/` | nothing (browser canvas and Web Audio) | yes |
+| `assets/fui-geo.js`, `assets/fui-audio.js`, `assets/fui-credential.js`, `assets/logos/` | nothing (browser canvas, Web Audio, SVG) | yes |
 | Optional WebGL globe, r187 build | **`three@0.187.0` supplied by the project** (npm or import map) | globe yes, Three.js no |
 | Optional WebGL globe, original build | nothing (Three.js r66 is inside the file) | yes |
 | `scripts/build_css.py`, `bundle_html.py`, `fui_lint.py` | Python 3, standard library only | yes |
@@ -388,6 +389,7 @@ markup, CSS, variants, states, rules, accessibility, i18n.
 | Logs and code | log stream, code block, command input, diff, status line | console.md |
 | Conversation | chat: message log, streaming replies, attachments, composer | chat.md |
 | Pictures and footage | image viewer (zoom, pan, regions, frame strip), video player (transport, seek, live, captions) | media.md |
+| Access badge & 1-inch ID photo | dual-sided 450:282 personnel badge (`.fui-badge-card`), live Code-128B barcode, 25×35mm cutout ID portrait (`.fui-id-photo`) with top-to-bottom scan reveal & rail dock (`.fui-credential-dock`, uses `assets/fui-credential.js`) | credential.md |
 | System diagram | schematic, reticle, trajectory, link line | [references/svg.md](references/svg.md) |
 | Locations | dot-matrix globe, flat map, sites, routes | [references/geo.md](references/geo.md) |
 | Locations, showcase | optional WebGL globe (ENCOM Globe adapter) for hero and wall-display views | [references/globe-webgl.md](references/globe-webgl.md) |

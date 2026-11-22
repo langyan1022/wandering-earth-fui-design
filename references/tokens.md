@@ -56,6 +56,12 @@ Declare on `:root`. Every value used anywhere in this skill comes from here.
   --fui-tint-1:    #8fc4ee;  /* meter tint: says what a bar measures, never how it is doing (station.md §6) */
   --fui-tint-2:    #e9d98a;  /* second meter tint; at most these two per view */
 
+  /* ── Physical credential card print surfaces (components/credential.md) ── */
+  --fui-card-slate:   #d3d5e0;  /* cool silver-slate upper badge stock */
+  --fui-card-paper:   #f9fafc;  /* crisp white lower print stock */
+  --fui-card-ink:     #0b0c10;  /* deep print ink on badge stock */
+  --fui-card-crimson: #9b0606;  /* industrial clearance block & security stripe */
+
   /* ── Type families ──────────────────────────────────────────────── */
   --fui-font-sans: "Rajdhani", "Barlow Semi Condensed", Bahnschrift, "DIN Alternate",
                    "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
